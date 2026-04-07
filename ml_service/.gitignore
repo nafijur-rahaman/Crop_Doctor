@@ -1,0 +1,31 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+venv/
+env/
+*.env
+
+# ML models (optional: if you don’t want to push .h5 to GitHub)
+*.h5
+*.hdf5
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files (from FastAPI uploads)
+temp_*
+
+# Python packaging
+*.egg-info/
+dist/
+build/
+
+# IDEs
+.vscode/
+.idea/
