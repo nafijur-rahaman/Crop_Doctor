@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'app_state.dart';
 import 'core/theme.dart';
-// import 'screens/welcome_screen.dart';
+import 'screens/welcome_screen.dart';
 
 void main() {
   runApp(const CropDiseaseDetection());
@@ -26,7 +26,7 @@ class _CropDiseaseDetectionState extends State<CropDiseaseDetection> {
         title: 'crop disease detection',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        // home: const WelcomeScreen(),
+        home: const WelcomeScreen(),
       ),
     );
   }
