@@ -102,8 +102,8 @@ class AgroAppScope extends InheritedNotifier<AgroAppState> {
   }) : super(notifier: notifier);
 
   static AgroAppState of(BuildContext context) {
-    final AgroAppScope? scope =
-        context.dependOnInheritedWidgetOfExactType<AgroAppScope>();
+    final AgroAppScope? scope = context
+        .dependOnInheritedWidgetOfExactType<AgroAppScope>();
     assert(scope != null, 'AgroAppScope not found in context');
     return scope!.notifier!;
   }

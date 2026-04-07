@@ -34,7 +34,9 @@ class HomeScreen extends StatelessWidget {
       },
       child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: AppStyles.paddingScreen),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppStyles.paddingScreen,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -47,7 +49,10 @@ class HomeScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Good Morning,',
-                      style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 14,
+                      ),
                     ),
                     Text(
                       'Tanjid Nafis',
@@ -103,16 +108,31 @@ class HomeScreen extends StatelessWidget {
                         ),
                         Text(
                           'Perfect for spraying',
-                          style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 13,
+                          ),
                         ),
                       ],
                     ),
                   ),
                   Icon(Icons.water_drop_outlined, size: 16, color: Colors.blue),
-                  Text(' 45%', style: TextStyle(fontSize: 12, color: AppColors.textPrimary)),
+                  Text(
+                    ' 45%',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                   SizedBox(width: 10),
                   Icon(Icons.air, size: 16, color: Colors.grey),
-                  Text(' 12km/h', style: TextStyle(fontSize: 12, color: AppColors.textPrimary)),
+                  Text(
+                    ' 12km/h',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -123,13 +143,15 @@ class HomeScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) => const CameraScreen(),
-                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                      return FadeTransition(
-                        opacity: animation,
-                        child: child,
-                      );
-                    },
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        const CameraScreen(),
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: child,
+                          );
+                        },
                   ),
                 );
               },
@@ -166,7 +188,10 @@ class HomeScreen extends StatelessWidget {
                           ),
                           Text(
                             'Instantly detect diseases using AI.',
-                            style: TextStyle(color: Colors.white70, fontSize: 14),
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
                           ),
                         ],
                       ),
@@ -231,7 +256,7 @@ class HomeScreen extends StatelessWidget {
                 const Text(
                   'My Farm',
                   style: TextStyle(
-                    fontSize: 20, 
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
                   ),

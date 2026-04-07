@@ -68,7 +68,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Icon(
@@ -172,12 +172,17 @@ class _AuthScreenState extends State<AuthScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text("Don't have an account? ", style: TextStyle(color: Colors.grey)),
+                          const Text(
+                            "Don't have an account? ",
+                            style: TextStyle(color: Colors.grey),
+                          ),
                           GestureDetector(
                             onTap: () {
                               Navigator.pushReplacement(
                                 context,
-                                MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                                MaterialPageRoute(
+                                  builder: (context) => const RegisterScreen(),
+                                ),
                               );
                             },
                             child: const Text(

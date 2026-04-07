@@ -132,7 +132,7 @@ class _MainLayoutState extends State<MainLayout> {
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         notchMargin: 8,
-        color: AppColors.surface,
+        color: Theme.of(context).colorScheme.surface,
         child: SizedBox(
           height: 65,
           child: Row(
@@ -177,7 +177,7 @@ class _MainLayoutState extends State<MainLayout> {
 
   Widget _buildNavButton(IconData icon, String label, int index) {
     final bool isSelected = _currentIndex == index;
-    final Color color = isSelected ? AppColors.primary : AppColors.textSecondary;
+    final Color color = isSelected ? AppColors.primary : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6);
 
     return InkWell(
       onTap: () => setState(() => _currentIndex = index),

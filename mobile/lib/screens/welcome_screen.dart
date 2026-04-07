@@ -17,17 +17,20 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   final List<Map<String, String>> _features = [
     {
       'title': 'Scan & Diagnose',
-      'subtitle': 'Discover crop diseases instantly with our AI-powered scanner.',
+      'subtitle':
+          'Discover crop diseases instantly with our AI-powered scanner.',
       'icon': 'eco',
     },
     {
       'title': 'Smart Farm Tools',
-      'subtitle': 'Calculate fertilizer needs and access extensive seed guides.',
+      'subtitle':
+          'Calculate fertilizer needs and access extensive seed guides.',
       'icon': 'calculate',
     },
     {
       'title': 'Community Forum',
-      'subtitle': 'Connect with farming experts and a helpful global community.',
+      'subtitle':
+          'Connect with farming experts and a helpful global community.',
       'icon': 'forum',
     },
   ];
@@ -77,7 +80,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         Container(
                           padding: const EdgeInsets.all(30),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
+                            color: Colors.white.withValues(alpha: 0.05),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -123,7 +126,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   height: 8,
                   width: _currentPage == index ? 24 : 8,
                   decoration: BoxDecoration(
-                    color: _currentPage == index ? const Color(0xFF00A36C) : Colors.white24,
+                    color: _currentPage == index
+                        ? const Color(0xFF00A36C)
+                        : Colors.white24,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -134,7 +139,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               flex: 2,
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 30,
+                  vertical: 40,
+                ),
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
@@ -152,7 +160,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const AuthScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => const AuthScreen(),
+                            ),
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -180,7 +190,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => const RegisterScreen(),
+                            ),
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -205,7 +217,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       onPressed: () {
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (context) => const MainLayout()),
+                          MaterialPageRoute(
+                            builder: (context) => const MainLayout(),
+                          ),
                         );
                       },
                       child: const Text(

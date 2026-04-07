@@ -16,17 +16,17 @@ class ResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FB),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.black),
+          icon: Icon(Icons.close, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Analysis Result',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -82,13 +82,13 @@ class ResultScreen extends StatelessWidget {
             const SizedBox(height: 25),
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
                     _diagnosisTitle,
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0A191E),
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -116,16 +116,19 @@ class ResultScreen extends StatelessWidget {
             ),
             const SizedBox(height: 15),
             _buildActionItem(
+              context,
               Icons.cut_outlined,
               'Prune infected leaves',
               'Remove and destroy all leaves showing spots to prevent spreading.',
             ),
             _buildActionItem(
+              context,
               Icons.opacity_outlined,
               'Apply Copper Fungicide',
               'Spray a copper-based fungicide every 7-10 days.',
             ),
             _buildActionItem(
+              context,
               Icons.water_drop_outlined,
               'Water at the base',
               'Avoid overhead watering to keep foliage dry.',
@@ -221,7 +224,7 @@ class ResultScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionItem(IconData icon, String title, String desc) {
+  Widget _buildActionItem(BuildContext context, IconData icon, String title, String desc) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Row(
@@ -230,7 +233,7 @@ class ResultScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: const Color(0xFF00A36C)),
