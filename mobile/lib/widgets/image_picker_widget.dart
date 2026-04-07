@@ -18,6 +18,9 @@ class _ImagePickerWidgetState extends State<ImagePickerWidget> {
   Future<void> pickImage() async {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes();
+      if (!mounted) return;
+      
       setState(() {
         _image = File(pickedFile.path);
       });
@@ -26,7 +29,7 @@ class _ImagePickerWidgetState extends State<ImagePickerWidget> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => ResultScreen(image: _image!),
+          builder: (_) => ResultScreen(imageBytes: bytes),
         ),
       );
     }
