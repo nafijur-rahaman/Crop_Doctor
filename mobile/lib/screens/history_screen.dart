@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../models/history_item.dart';
+import '../widgets/custom_notification.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -89,9 +90,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       return InkWell(
                         borderRadius: BorderRadius.circular(20),
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Opened ${log.title}')),
-                          );
+                          CustomNotification.show(context, 'Opened ${log.title}');
                         },
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 15),

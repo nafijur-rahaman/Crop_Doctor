@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/custom_notification.dart';
 import 'main_layout.dart';
 import 'register_screen.dart';
 
@@ -49,9 +50,7 @@ class _AuthScreenState extends State<AuthScreen> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Use dummy login: tanjid / 123456')),
-    );
+    CustomNotification.show(context, 'Use dummy login: tanjid / 123456');
   }
 
   @override

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/custom_notification.dart';
 import 'auth_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -213,9 +214,7 @@ class ProfileScreen extends StatelessWidget {
       ),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$title will be expanded later.')),
-        );
+        CustomNotification.show(context, '$title will be expanded later.');
       },
     );
   }

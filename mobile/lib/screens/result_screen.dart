@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../app_state.dart';
+import '../widgets/custom_notification.dart';
 import 'forum_screen.dart';
 
 class ResultScreen extends StatelessWidget {
@@ -197,9 +198,7 @@ class ResultScreen extends StatelessWidget {
               title: _diagnosisTitle,
               statusColor: _diagnosisColor,
             );
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Saved to history.')),
-            );
+            CustomNotification.show(context, 'Saved to history.');
             Navigator.pop(context);
           },
           style: ElevatedButton.styleFrom(

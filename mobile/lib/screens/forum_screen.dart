@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../models/forum_post.dart';
+import '../widgets/custom_notification.dart';
 
 class ForumScreen extends StatefulWidget {
   const ForumScreen({super.key, this.initialDraftQuestion});
@@ -100,11 +101,7 @@ class _ForumScreenState extends State<ForumScreen> {
                       final String question = questionController.text.trim();
 
                       if (name.isEmpty || question.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Please fill out both fields.'),
-                          ),
-                        );
+                        CustomNotification.show(context, 'Please fill out both fields.');
                         return;
                       }
 
@@ -145,9 +142,7 @@ class _ForumScreenState extends State<ForumScreen> {
       question: result['question']!,
     );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Your question was added locally.')),
-    );
+    CustomNotification.show(context, 'Your question was added locally.');
   }
 
   @override

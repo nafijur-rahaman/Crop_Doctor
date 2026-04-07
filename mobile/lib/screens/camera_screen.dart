@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../widgets/custom_notification.dart';
 import 'result_screen.dart';
 
 class CameraScreen extends StatefulWidget {
@@ -50,11 +51,7 @@ class _CameraScreenState extends State<CameraScreen> {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Could not open image picker. Please try again.'),
-        ),
-      );
+      CustomNotification.show(context, 'Could not open image picker. Please try again.');
     } finally {
       if (mounted) {
         setState(() {
@@ -84,11 +81,7 @@ class _CameraScreenState extends State<CameraScreen> {
                 _buildCircleIcon(
                   icon: Icons.bolt_outlined,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Flash settings will be added later.'),
-                      ),
-                    );
+                    CustomNotification.show(context, 'Flash settings will be added later.');
                   },
                 ),
               ],
@@ -162,11 +155,7 @@ class _CameraScreenState extends State<CameraScreen> {
                   _buildBottomAction(
                     icon: Icons.insights_outlined,
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Insights will be added later.'),
-                        ),
-                      );
+                      CustomNotification.show(context, 'Insights will be added later.');
                     },
                   ),
                 ],
