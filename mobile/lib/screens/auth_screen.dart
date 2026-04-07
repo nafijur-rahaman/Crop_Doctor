@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'main_layout.dart';
+import 'register_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -167,34 +168,28 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                       ),
                     ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20),
-                      child: Center(
-                        child: Text('OR', style: TextStyle(color: Colors.grey)),
-                      ),
-                    ),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 55,
-                      child: OutlinedButton.icon(
-                        onPressed: _goToHome,
-                        icon: const Icon(
-                          Icons.person_search_outlined,
-                          color: Color(0xFF00A36C),
-                        ),
-                        label: const Text(
-                          'Continue as Guest',
-                          style: TextStyle(
-                            color: Color(0xFF00A36C),
-                            fontSize: 16,
+                    const SizedBox(height: 20),
+                    Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text("Don't have an account? ", style: TextStyle(color: Colors.grey)),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                              );
+                            },
+                            child: const Text(
+                              'Sign Up',
+                              style: TextStyle(
+                                color: Color(0xFF00A36C),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFF00A36C)),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                        ),
+                        ],
                       ),
                     ),
                   ],

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'app_state.dart';
-import 'screens/auth_screen.dart';
+import 'core/theme.dart';
+import 'screens/welcome_screen.dart';
 
 void main() {
   runApp(const CropDiseaseDetection());
@@ -24,11 +25,8 @@ class _CropDiseaseDetectionState extends State<CropDiseaseDetection> {
       child: MaterialApp(
         title: 'crop disease detection',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          primaryColor: const Color(0xFF00A36C),
-          scaffoldBackgroundColor: const Color(0xFFF8F9FB),
-        ),
-        home: const AuthScreen(),
+        theme: AppTheme.lightTheme,
+        home: const WelcomeScreen(),
       ),
     );
   }

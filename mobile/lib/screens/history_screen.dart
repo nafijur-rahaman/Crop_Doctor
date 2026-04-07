@@ -39,7 +39,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             fontSize: 24,
           ),
         ),
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color.fromARGB(0, 245, 8, 8),
         elevation: 0,
         centerTitle: false,
       ),

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../core/constants/app_colors.dart';
 import 'camera_screen.dart';
 import 'forum_screen.dart';
 import 'history_screen.dart';
 import 'home_screen.dart';
 import 'profile_screen.dart';
+import '../widgets/custom_notification.dart';
+import 'welcome_screen.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({
@@ -27,23 +30,109 @@ class _MainLayoutState extends State<MainLayout> {
   Widget build(BuildContext context) {
     final List<Widget> pages = <Widget>[
       HomeScreen(
+        key: const ValueKey(0),
         onOpenForum: () => setState(() => _currentIndex = 1),
         onOpenProfile: () => setState(() => _currentIndex = 4),
       ),
-      ForumScreen(initialDraftQuestion: widget.initialForumQuestion),
-      const SizedBox(),
-      const HistoryScreen(),
-      const ProfileScreen(),
+      ForumScreen(key: const ValueKey(1), initialDraftQuestion: widget.initialForumQuestion),
+      const SizedBox(key: ValueKey(2)),
+      const HistoryScreen(key: ValueKey(3)),
+      const ProfileScreen(key: ValueKey(4)),
     ];
 
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: pages,
+      endDrawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundColor: Colors.white,
+                    child: Text(
+                      'TN',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'Tanjid Nafis',
+                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    'tanjid@example.com',
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.person_outline),
+              title: const Text('View Profile'),
+              onTap: () {
+                Navigator.pop(context); // Close drawer
+                setState(() => _currentIndex = 4); // Go to profile
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings_outlined),
+              title: const Text('Settings'),
+              onTap: () {
+                Navigator.pop(context);
+                CustomNotification.show(context, 'Settings will be available soon.');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.help_outline),
+              title: const Text('Help & Support'),
+              onTap: () {
+                Navigator.pop(context);
+                CustomNotification.show(context, 'Help & Support will be available soon.');
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text('Log Out', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                  (route) => false,
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        switchInCurve: Curves.easeOut,
+        switchOutCurve: Curves.easeIn,
+        transitionBuilder: (child, animation) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+        child: pages[_currentIndex],
       ),
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         notchMargin: 8,
+        color: AppColors.surface,
         child: SizedBox(
           height: 65,
           child: Row(
@@ -63,14 +152,23 @@ class _MainLayoutState extends State<MainLayout> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const CameraScreen()),
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => const CameraScreen(),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: child,
+                );
+              },
+            ),
           );
         },
-        backgroundColor: const Color(0xFF00A36C),
+        backgroundColor: AppColors.primary,
         elevation: 5,
+        shape: const CircleBorder(),
         child: const Icon(
           Icons.camera_alt_outlined,
-          color: Colors.white,
+          color: AppColors.textLight,
           size: 28,
         ),
       ),
@@ -79,7 +177,7 @@ class _MainLayoutState extends State<MainLayout> {
 
   Widget _buildNavButton(IconData icon, String label, int index) {
     final bool isSelected = _currentIndex == index;
-    final Color color = isSelected ? const Color(0xFF00A36C) : Colors.grey;
+    final Color color = isSelected ? AppColors.primary : AppColors.textSecondary;
 
     return InkWell(
       onTap: () => setState(() => _currentIndex = index),
