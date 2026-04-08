@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -15,7 +16,85 @@ class CameraScreen extends StatefulWidget {
 
 class _CameraScreenState extends State<CameraScreen> {
   final ImagePicker _picker = ImagePicker();
+  CameraController? _cameraController;
   bool _isPickingImage = false;
+  bool _isCameraInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initCamera();
+  }
+
+  Future<void> _initCamera() async {
+    try {
+      final List<CameraDescription> cameras = await availableCameras();
+      if (cameras.isEmpty) return;
+
+      final CameraDescription backCamera = cameras.firstWhere(
+        (c) => c.lensDirection == CameraLensDirection.back,
+        orElse: () => cameras.first,
+      );
+
+      _cameraController = CameraController(
+        backCamera,
+        ResolutionPreset.high,
+        enableAudio: false,
+      );
+
+      await _cameraController!.initialize();
+      if (!mounted) return;
+      setState(() {
+        _isCameraInitialized = true;
+      });
+    } catch (e) {
+      debugPrint('Camera init error: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _cameraController?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _takePicture() async {
+    if (_cameraController == null || !_cameraController!.value.isInitialized) {
+      // Fallback to picker if hardware camera failed
+      _pickImage(ImageSource.camera);
+      return;
+    }
+
+    if (_isPickingImage) return;
+
+    setState(() {
+      _isPickingImage = true;
+    });
+
+    try {
+      final XFile photo = await _cameraController!.takePicture();
+      if (!mounted) return;
+      
+      final Uint8List imageBytes = await photo.readAsBytes();
+      if (!mounted) return;
+
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ResultScreen(imageBytes: imageBytes),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      CustomNotification.show(context, 'Could not capture photo. Please try again.');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPickingImage = false;
+        });
+      }
+    }
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     if (_isPickingImage) return;
@@ -67,6 +146,10 @@ class _CameraScreenState extends State<CameraScreen> {
       backgroundColor: const Color(0xFF0A191E),
       body: Stack(
         children: [
+          if (_isCameraInitialized && _cameraController != null)
+            Positioned.fill(
+              child: CameraPreview(_cameraController!),
+            ),
           Positioned(
             top: 50,
             left: 20,
@@ -103,7 +186,7 @@ class _CameraScreenState extends State<CameraScreen> {
                 ),
                 child: Text(
                   _isPickingImage
-                      ? 'Opening image picker...'
+                      ? 'Processing...'
                       : 'Align the affected leaf within the frame',
                   style: const TextStyle(
                     color: Colors.white,
@@ -129,11 +212,13 @@ class _CameraScreenState extends State<CameraScreen> {
                       ? const CircularProgressIndicator(
                           color: Color(0xFF00A36C),
                         )
-                      : const Icon(
-                          Icons.eco_outlined,
-                          color: Color(0xFF00A36C),
-                          size: 80,
-                        ),
+                      : (!_isCameraInitialized
+                          ? const Icon(
+                              Icons.eco_outlined,
+                              color: Color(0xFF00A36C),
+                              size: 80,
+                            )
+                          : const SizedBox.shrink()),
                 ],
               ),
             ),
@@ -203,7 +288,7 @@ class _CameraScreenState extends State<CameraScreen> {
 
   Widget _buildShutterButton() {
     return GestureDetector(
-      onTap: () => _pickImage(ImageSource.camera),
+      onTap: _takePicture, // CHANGED from _pickImage
       child: Container(
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
