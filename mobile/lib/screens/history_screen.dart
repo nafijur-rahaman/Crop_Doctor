@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../models/history_item.dart';
-import '../widgets/custom_notification.dart';
+import 'result_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -90,9 +90,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       return InkWell(
                         borderRadius: BorderRadius.circular(20),
                         onTap: () {
-                          CustomNotification.show(
+                          Navigator.push(
                             context,
-                            'Opened ${log.title}',
+                            MaterialPageRoute(
+                              builder: (context) => ResultScreen(
+                                imageBytes: log.imageBytes,
+                                diagnosisTitle: log.title,
+                                diagnosisColor: log.statusColor,
+                                scientificName: log.scientificName,
+                                matchPercentage: log.matchPercentage,
+                                actions: log.actions,
+                                isHistoryView: true,
+                              ),
+                            ),
                           );
                         },
                         child: Container(
@@ -119,12 +129,20 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                     context,
                                   ).scaffoldBackgroundColor,
                                   borderRadius: BorderRadius.circular(15),
+                                  image: log.imageBytes != null
+                                      ? DecorationImage(
+                                          image: MemoryImage(log.imageBytes!),
+                                          fit: BoxFit.cover,
+                                        )
+                                      : null,
                                 ),
                                 alignment: Alignment.center,
-                                child: Text(
-                                  log.icon,
-                                  style: const TextStyle(fontSize: 30),
-                                ),
+                                child: log.imageBytes == null
+                                    ? Text(
+                                        log.icon,
+                                        style: const TextStyle(fontSize: 30),
+                                      )
+                                    : null,
                               ),
                               const SizedBox(width: 15),
                               Expanded(

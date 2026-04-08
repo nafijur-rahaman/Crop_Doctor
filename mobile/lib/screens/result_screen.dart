@@ -1,17 +1,47 @@
 import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../widgets/custom_notification.dart';
 import 'forum_screen.dart';
 
+import '../models/history_item.dart';
+
 class ResultScreen extends StatelessWidget {
-  const ResultScreen({super.key, this.imageBytes});
+  const ResultScreen({
+    super.key,
+    this.imageBytes,
+    this.diagnosisTitle = 'Tomato Early Blight',
+    this.diagnosisColor = Colors.red,
+    this.scientificName = 'Fungal Infection - Alternaria solani',
+    this.matchPercentage = '98%',
+    this.actions = const [
+      RecommendationAction(
+        icon: Icons.cut_outlined,
+        title: 'Prune infected leaves',
+        description: 'Remove and destroy all leaves showing spots to prevent spreading.',
+      ),
+      RecommendationAction(
+        icon: Icons.opacity_outlined,
+        title: 'Apply Copper Fungicide',
+        description: 'Spray a copper-based fungicide every 7-10 days.',
+      ),
+      RecommendationAction(
+        icon: Icons.water_drop_outlined,
+        title: 'Water at the base',
+        description: 'Avoid overhead watering to keep foliage dry.',
+      ),
+    ],
+    this.isHistoryView = false,
+  });
 
   final Uint8List? imageBytes;
-  static const String _diagnosisTitle = 'Tomato Early Blight';
-  static const Color _diagnosisColor = Colors.red;
+  final String diagnosisTitle;
+  final Color diagnosisColor;
+  final String scientificName;
+  final String matchPercentage;
+  final List<RecommendationAction> actions;
+  final bool isHistoryView;
 
   @override
   Widget build(BuildContext context) {
@@ -73,9 +103,9 @@ class ResultScreen extends StatelessWidget {
                       color: const Color(0xFF00A36C),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Text(
-                      '98% Match',
-                      style: TextStyle(
+                    child: Text(
+                      matchPercentage.contains('%') ? matchPercentage : '$matchPercentage% Match',
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
@@ -90,7 +120,7 @@ class ResultScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    _diagnosisTitle,
+                    diagnosisTitle,
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -101,19 +131,19 @@ class ResultScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.red[50],
+                    color: diagnosisColor.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.warning_amber_rounded,
-                    color: Colors.red,
+                    color: diagnosisColor,
                   ),
                 ),
               ],
             ),
-            const Text(
-              'Fungal Infection - Alternaria solani',
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+            Text(
+              scientificName,
+              style: const TextStyle(color: Colors.grey, fontSize: 14),
             ),
             const SizedBox(height: 25),
             const Text(
@@ -121,24 +151,12 @@ class ResultScreen extends StatelessWidget {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 15),
-            _buildActionItem(
+            ...actions.map((action) => _buildActionItem(
               context,
-              Icons.cut_outlined,
-              'Prune infected leaves',
-              'Remove and destroy all leaves showing spots to prevent spreading.',
-            ),
-            _buildActionItem(
-              context,
-              Icons.opacity_outlined,
-              'Apply Copper Fungicide',
-              'Spray a copper-based fungicide every 7-10 days.',
-            ),
-            _buildActionItem(
-              context,
-              Icons.water_drop_outlined,
-              'Water at the base',
-              'Avoid overhead watering to keep foliage dry.',
-            ),
+              action.icon,
+              action.title,
+              action.description,
+            )),
             const SizedBox(height: 30),
             Container(
               padding: const EdgeInsets.all(20),
@@ -196,13 +214,17 @@ class ResultScreen extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: Padding(
+      bottomNavigationBar: isHistoryView ? null : Padding(
         padding: const EdgeInsets.all(20),
         child: ElevatedButton(
           onPressed: () {
             AgroAppScope.of(context).saveDiagnosisToHistory(
-              title: _diagnosisTitle,
-              statusColor: _diagnosisColor,
+              title: diagnosisTitle,
+              statusColor: diagnosisColor,
+              scientificName: scientificName,
+              matchPercentage: matchPercentage,
+              imageBytes: imageBytes,
+              actions: actions,
             );
             CustomNotification.show(context, 'Saved to history.');
             Navigator.pop(context);

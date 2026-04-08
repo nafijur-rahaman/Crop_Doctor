@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import 'models/forum_post.dart';
@@ -51,24 +52,80 @@ class AgroAppState extends ChangeNotifier {
       time: '2 hours ago',
       icon: 'T',
       statusColor: Colors.red,
+      scientificName: 'Fungal Infection - Alternaria solani',
+      matchPercentage: '98%',
+      actions: [
+        RecommendationAction(
+          icon: Icons.cut_outlined,
+          title: 'Prune infected leaves',
+          description: 'Remove and destroy all leaves showing spots to prevent spreading.',
+        ),
+        RecommendationAction(
+          icon: Icons.opacity_outlined,
+          title: 'Apply Copper Fungicide',
+          description: 'Spray a copper-based fungicide every 7-10 days.',
+        ),
+        RecommendationAction(
+          icon: Icons.water_drop_outlined,
+          title: 'Water at the base',
+          description: 'Avoid overhead watering to keep foliage dry.',
+        ),
+      ],
     ),
     const HistoryItem(
-      title: 'Healthy Potato',
+      title: 'Potato Late Blight',
       time: 'Yesterday',
       icon: 'P',
-      statusColor: Colors.green,
-    ),
-    const HistoryItem(
-      title: 'Apple Scab',
-      time: 'Oct 12',
-      icon: 'A',
       statusColor: Colors.orange,
+      scientificName: 'Oomycete - Phytophthora infestans',
+      matchPercentage: '85%',
+      actions: [
+        RecommendationAction(
+          icon: Icons.air,
+          title: 'Improve air circulation',
+          description: 'Ensure plants are adequately spaced to reduce moisture.',
+        ),
+        RecommendationAction(
+          icon: Icons.science_outlined,
+          title: 'Systemic Fungicide',
+          description: 'Apply specialized late blight fungicides as soon as possible.',
+        ),
+      ],
     ),
     const HistoryItem(
-      title: 'Powdery Mildew',
-      time: 'Sept 28',
-      icon: 'M',
+      title: 'Healthy Corn',
+      time: '3 days ago',
+      icon: 'C',
+      statusColor: Colors.green,
+      scientificName: 'Zea mays',
+      matchPercentage: '100%',
+      actions: [
+        RecommendationAction(
+          icon: Icons.check_circle_outline,
+          title: 'No issues detected',
+          description: 'Your crop looks healthy! Continue your current maintenance schedule.',
+        ),
+      ],
+    ),
+    const HistoryItem(
+      title: 'Wheat Rust',
+      time: 'Oct 12',
+      icon: 'W',
       statusColor: Colors.red,
+      scientificName: 'Fungal Infection - Puccinia triticina',
+      matchPercentage: '92%',
+      actions: [
+        RecommendationAction(
+          icon: Icons.grass_outlined,
+          title: 'Monitor surrounding fields',
+          description: 'Rust spores can travel long distances via wind.',
+        ),
+        RecommendationAction(
+          icon: Icons.medication_outlined,
+          title: 'Targeted Sprays',
+          description: 'Apply triazole or strobilurin based fungicides.',
+        ),
+      ],
     ),
   ];
 
@@ -161,6 +218,10 @@ class AgroAppState extends ChangeNotifier {
     required String title,
     required Color statusColor,
     String icon = 'T',
+    String scientificName = '',
+    String matchPercentage = '0%',
+    Uint8List? imageBytes,
+    List<RecommendationAction> actions = const [],
   }) {
     _historyItems.insert(
       0,
@@ -169,6 +230,10 @@ class AgroAppState extends ChangeNotifier {
         time: 'Just now',
         icon: icon,
         statusColor: statusColor,
+        scientificName: scientificName,
+        matchPercentage: matchPercentage,
+        imageBytes: imageBytes,
+        actions: actions,
       ),
     );
     notifyListeners();
