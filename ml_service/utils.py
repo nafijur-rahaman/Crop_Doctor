@@ -1,12 +1,13 @@
 import json
+import io
 from pathlib import Path
 import numpy as np
+from PIL import Image
 from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image
 
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_DIR = BASE_DIR / "ml_model"
-MODEL_PATH = MODEL_DIR / "plant_disease_model.h5"
+MODEL_PATH = MODEL_DIR / "plant_disease_model.keras"
 CLASS_PATH = MODEL_DIR / "class_names.json"
 
 
@@ -24,24 +25,31 @@ def load_class_names(class_path):
     return {int(v): k for k, v in raw_data.items()}
 
 
+
 model = load_model(MODEL_PATH)
 class_names = load_class_names(CLASS_PATH)
 
 INPUT_HEIGHT = int(model.input_shape[1])
 INPUT_WIDTH = int(model.input_shape[2])
 
-def predict_image(file_path):
+def predict_image_from_bytes(file_bytes):
     """
-    Predict the disease from a leaf image.
+    Predict the disease directly from raw image bytes in memory.
     Returns:
         disease_name (str), confidence (float)
     """
-    # Load & preprocess image
-    img = image.load_img(file_path, target_size=(INPUT_HEIGHT, INPUT_WIDTH))
-    img_array = image.img_to_array(img)
+    # Open image directly from memory, ensure it is RGB
+    img = Image.open(io.BytesIO(file_bytes)).convert("RGB")
+    
+    # Resize to match your model's expected input
+    img = img.resize((INPUT_WIDTH, INPUT_HEIGHT))
+    
+    # Convert to array and preprocess
+    img_array = np.array(img)
     img_array = np.expand_dims(img_array, axis=0)
-    img_array /= 255.0
+    img_array = img_array / 255.0
 
+    # Predict
     pred = model.predict(img_array, verbose=0)
     pred_index = int(np.argmax(pred))
     confidence = float(np.max(pred))
