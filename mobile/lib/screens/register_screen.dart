@@ -56,7 +56,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
           const SizedBox(height: 8),
           Text(
             'Join our farming community',
-            style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 16),
+            style: TextStyle(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              fontSize: 16,
+            ),
           ),
           const SizedBox(height: 40),
           Expanded(
@@ -166,7 +169,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         hintStyle: const TextStyle(color: Colors.grey),
         prefixIcon: Icon(icon, color: Colors.grey),
         filled: true,
-        fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : const Color(0xFFF5F6F8),
+        fillColor: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF1E293B)
+            : const Color(0xFFF5F6F8),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
           borderSide: BorderSide.none,

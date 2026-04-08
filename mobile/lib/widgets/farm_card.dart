@@ -60,7 +60,10 @@ class FarmCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     'Growth stage: $stage',
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 13,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   ClipRRect(

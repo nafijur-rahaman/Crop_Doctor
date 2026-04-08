@@ -165,7 +165,10 @@ class ProfileScreen extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 10,
+            ),
           ],
         ),
         child: Column(

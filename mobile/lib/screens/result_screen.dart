@@ -19,12 +19,18 @@ class ResultScreen extends StatelessWidget {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.close, color: Theme.of(context).colorScheme.onSurface),
+          icon: Icon(
+            Icons.close,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Analysis Result',
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
@@ -161,10 +167,7 @@ class ResultScreen extends StatelessWidget {
                         ),
                         Text(
                           'Talk to a certified agronomist now.',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          ),
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
                         ),
                       ],
                     ),
@@ -224,7 +227,12 @@ class ResultScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionItem(BuildContext context, IconData icon, String title, String desc) {
+  Widget _buildActionItem(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String desc,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Row(

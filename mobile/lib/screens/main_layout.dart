@@ -34,7 +34,10 @@ class _MainLayoutState extends State<MainLayout> {
         onOpenForum: () => setState(() => _currentIndex = 1),
         onOpenProfile: () => setState(() => _currentIndex = 4),
       ),
-      ForumScreen(key: const ValueKey(1), initialDraftQuestion: widget.initialForumQuestion),
+      ForumScreen(
+        key: const ValueKey(1),
+        initialDraftQuestion: widget.initialForumQuestion,
+      ),
       const SizedBox(key: ValueKey(2)),
       const HistoryScreen(key: ValueKey(3)),
       const ProfileScreen(key: ValueKey(4)),
@@ -46,9 +49,7 @@ class _MainLayoutState extends State<MainLayout> {
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: const BoxDecoration(
-                color: AppColors.primary,
-              ),
+              decoration: const BoxDecoration(color: AppColors.primary),
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -68,7 +69,11 @@ class _MainLayoutState extends State<MainLayout> {
                   SizedBox(height: 10),
                   Text(
                     'Tanjid Nafis',
-                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Text(
                     'tanjid@example.com',
@@ -90,7 +95,10 @@ class _MainLayoutState extends State<MainLayout> {
               title: const Text('Settings'),
               onTap: () {
                 Navigator.pop(context);
-                CustomNotification.show(context, 'Settings will be available soon.');
+                CustomNotification.show(
+                  context,
+                  'Settings will be available soon.',
+                );
               },
             ),
             ListTile(
@@ -98,7 +106,10 @@ class _MainLayoutState extends State<MainLayout> {
               title: const Text('Help & Support'),
               onTap: () {
                 Navigator.pop(context);
-                CustomNotification.show(context, 'Help & Support will be available soon.');
+                CustomNotification.show(
+                  context,
+                  'Help & Support will be available soon.',
+                );
               },
             ),
             const Divider(),
@@ -109,7 +120,9 @@ class _MainLayoutState extends State<MainLayout> {
                 Navigator.pop(context);
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const WelcomeScreen(),
+                  ),
                   (route) => false,
                 );
               },
@@ -122,10 +135,7 @@ class _MainLayoutState extends State<MainLayout> {
         switchInCurve: Curves.easeOut,
         switchOutCurve: Curves.easeIn,
         transitionBuilder: (child, animation) {
-          return FadeTransition(
-            opacity: animation,
-            child: child,
-          );
+          return FadeTransition(opacity: animation, child: child);
         },
         child: pages[_currentIndex],
       ),
@@ -153,13 +163,12 @@ class _MainLayoutState extends State<MainLayout> {
           Navigator.push(
             context,
             PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) => const CameraScreen(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(
-                  opacity: animation,
-                  child: child,
-                );
-              },
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  const CameraScreen(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
             ),
           );
         },
@@ -177,7 +186,9 @@ class _MainLayoutState extends State<MainLayout> {
 
   Widget _buildNavButton(IconData icon, String label, int index) {
     final bool isSelected = _currentIndex == index;
-    final Color color = isSelected ? AppColors.primary : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6);
+    final Color color = isSelected
+        ? AppColors.primary
+        : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6);
 
     return InkWell(
       onTap: () => setState(() => _currentIndex = index),

@@ -90,7 +90,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       return InkWell(
                         borderRadius: BorderRadius.circular(20),
                         onTap: () {
-                          CustomNotification.show(context, 'Opened ${log.title}');
+                          CustomNotification.show(
+                            context,
+                            'Opened ${log.title}',
+                          );
                         },
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 15),
@@ -112,7 +115,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 width: 60,
                                 height: 60,
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context).scaffoldBackgroundColor,
+                                  color: Theme.of(
+                                    context,
+                                  ).scaffoldBackgroundColor,
                                   borderRadius: BorderRadius.circular(15),
                                 ),
                                 alignment: Alignment.center,
@@ -124,15 +129,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               const SizedBox(width: 15),
                               Expanded(
                                 child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       log.title,
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
-                                        color: Theme.of(context).colorScheme.onSurface,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurface,
                                       ),
                                     ),
                                     const SizedBox(height: 4),
