@@ -141,8 +141,11 @@ class _MainLayoutState extends State<MainLayout> {
       ),
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
-        notchMargin: 8,
+        notchMargin: 12, // Increased round space around it
+        clipBehavior: Clip.antiAlias,
         color: Theme.of(context).colorScheme.surface,
+        elevation: 8, // Added subtle shadow to emphasize the cutout
+        shadowColor: Colors.black.withValues(alpha: 0.1),
         child: SizedBox(
           height: 65,
           child: Row(
@@ -157,7 +160,7 @@ class _MainLayoutState extends State<MainLayout> {
           ),
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButtonLocation: const _LoweredCenterDockedFabLocation(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -208,5 +211,17 @@ class _MainLayoutState extends State<MainLayout> {
         ],
       ),
     );
+  }
+}
+
+class _LoweredCenterDockedFabLocation extends FloatingActionButtonLocation {
+  const _LoweredCenterDockedFabLocation();
+
+  @override
+  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
+    // Get the standard center docked offset.
+    final Offset standardOffset = FloatingActionButtonLocation.centerDocked.getOffset(scaffoldGeometry);
+    // Shift the Y-axis down by 15 pixels to embed the FAB deeper into the navigation bar.
+    return Offset(standardOffset.dx, standardOffset.dy + 15.0);
   }
 }
