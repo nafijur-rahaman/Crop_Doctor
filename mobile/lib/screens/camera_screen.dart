@@ -19,6 +19,7 @@ class _CameraScreenState extends State<CameraScreen> {
   CameraController? _cameraController;
   bool _isPickingImage = false;
   bool _isCameraInitialized = false;
+  FlashMode _flashMode = FlashMode.off;
 
   @override
   void initState() {
@@ -96,6 +97,49 @@ class _CameraScreenState extends State<CameraScreen> {
     }
   }
 
+  Future<void> _toggleFlash() async {
+    if (_cameraController == null || !_cameraController!.value.isInitialized) {
+      return;
+    }
+
+    FlashMode nextMode;
+    switch (_flashMode) {
+      case FlashMode.off:
+        nextMode = FlashMode.auto;
+        break;
+      case FlashMode.auto:
+        nextMode = FlashMode.torch;
+        break;
+      case FlashMode.torch:
+      case FlashMode.always:
+        nextMode = FlashMode.off;
+        break;
+    }
+
+    try {
+      await _cameraController!.setFlashMode(nextMode);
+      setState(() {
+        _flashMode = nextMode;
+      });
+    } catch (e) {
+      if (mounted) {
+        CustomNotification.show(context, 'Could not change flash mode.');
+      }
+    }
+  }
+
+  IconData _getFlashIcon() {
+    switch (_flashMode) {
+      case FlashMode.off:
+        return Icons.flash_off_outlined;
+      case FlashMode.auto:
+        return Icons.flash_auto_outlined;
+      case FlashMode.torch:
+      case FlashMode.always:
+        return Icons.flash_on_outlined;
+    }
+  }
+
   Future<void> _pickImage(ImageSource source) async {
     if (_isPickingImage) return;
 
@@ -162,10 +206,8 @@ class _CameraScreenState extends State<CameraScreen> {
                   onTap: () => Navigator.pop(context),
                 ),
                 _buildCircleIcon(
-                  icon: Icons.bolt_outlined,
-                  onTap: () {
-                    CustomNotification.show(context, 'Flash settings will be added later.');
-                  },
+                  icon: _getFlashIcon(),
+                  onTap: _toggleFlash,
                 ),
               ],
             ),
