@@ -22,7 +22,7 @@ class AppStyles {
 
   static List<BoxShadow> highlightShadow = [
     BoxShadow(
-      color: AppColors.primary.withOpacity(0.2),
+      color: AppColors.primary.withValues(alpha: 0.2),
       blurRadius: 12,
       offset: const Offset(0, 6),
     ),

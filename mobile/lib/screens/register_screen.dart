@@ -32,38 +32,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0A191E),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        leading: const BackButton(color: Colors.white),
+        leading: BackButton(color: theme.colorScheme.onSurface),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: Column(
         children: [
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'Create Account',
             style: TextStyle(
-              color: Colors.white,
+              color: theme.colorScheme.onSurface,
               fontSize: 32,
               fontWeight: FontWeight.bold,
               letterSpacing: 1.2,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Join our farming community',
-            style: TextStyle(color: Colors.white70, fontSize: 16),
+            style: TextStyle(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              fontSize: 16,
+            ),
           ),
           const SizedBox(height: 40),
           Expanded(
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(40),
                   topRight: Radius.circular(40),
                 ),
@@ -118,10 +123,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text('Already have an account? ', style: TextStyle(color: Colors.grey)),
+                          const Text(
+                            'Already have an account? ',
+                            style: TextStyle(color: Colors.grey),
+                          ),
                           GestureDetector(
                             onTap: () {
-                              Navigator.pop(context); // Go back to Welcome or Auth
+                              Navigator.pop(
+                                context,
+                              ); // Go back to Welcome or Auth
                             },
                             child: const Text(
                               'Log In',
@@ -153,11 +163,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return TextField(
       controller: controller,
       obscureText: isPassword,
+      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
       decoration: InputDecoration(
         hintText: hint,
+        hintStyle: const TextStyle(color: Colors.grey),
         prefixIcon: Icon(icon, color: Colors.grey),
         filled: true,
-        fillColor: const Color(0xFFF5F6F8),
+        fillColor: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF1E293B)
+            : const Color(0xFFF5F6F8),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
           borderSide: BorderSide.none,

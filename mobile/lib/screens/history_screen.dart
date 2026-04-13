@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../models/history_item.dart';
+import 'result_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -29,12 +30,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FB),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'History Logs',
           style: TextStyle(
-            color: Color(0xFF0A191E),
+            color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.bold,
             fontSize: 24,
           ),
@@ -64,7 +65,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       )
                     : null,
                 filled: true,
-                fillColor: const Color(0xFFF0F2F5),
+                fillColor: Theme.of(context).colorScheme.surface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(15),
                   borderSide: BorderSide.none,
@@ -89,19 +90,30 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       return InkWell(
                         borderRadius: BorderRadius.circular(20),
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Opened ${log.title}')),
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ResultScreen(
+                                imageBytes: log.imageBytes,
+                                diagnosisTitle: log.title,
+                                diagnosisColor: log.statusColor,
+                                scientificName: log.scientificName,
+                                matchPercentage: log.matchPercentage,
+                                actions: log.actions,
+                                isHistoryView: true,
+                              ),
+                            ),
                           );
                         },
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 15),
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.surface,
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.02),
+                                color: Colors.black.withValues(alpha: 0.02),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -113,27 +125,38 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 width: 60,
                                 height: 60,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFF8F9FB),
+                                  color: Theme.of(
+                                    context,
+                                  ).scaffoldBackgroundColor,
                                   borderRadius: BorderRadius.circular(15),
+                                  image: log.imageBytes != null
+                                      ? DecorationImage(
+                                          image: MemoryImage(log.imageBytes!),
+                                          fit: BoxFit.cover,
+                                        )
+                                      : null,
                                 ),
                                 alignment: Alignment.center,
-                                child: Text(
-                                  log.icon,
-                                  style: const TextStyle(fontSize: 30),
-                                ),
+                                child: log.imageBytes == null
+                                    ? Text(
+                                        log.icon,
+                                        style: const TextStyle(fontSize: 30),
+                                      )
+                                    : null,
                               ),
                               const SizedBox(width: 15),
                               Expanded(
                                 child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       log.title,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
-                                        color: Color(0xFF0A191E),
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurface,
                                       ),
                                     ),
                                     const SizedBox(height: 4),

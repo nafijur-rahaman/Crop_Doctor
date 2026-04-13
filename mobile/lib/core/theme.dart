@@ -28,8 +28,14 @@ class AppTheme {
         ),
       ),
       textTheme: const TextTheme(
-        displayLarge: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
-        displayMedium: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+        displayLarge: TextStyle(
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.bold,
+        ),
+        displayMedium: TextStyle(
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.bold,
+        ),
         bodyLarge: TextStyle(color: AppColors.textPrimary),
         bodyMedium: TextStyle(color: AppColors.textSecondary),
       ),
@@ -43,9 +49,7 @@ class AppTheme {
           elevation: 0,
         ),
       ),
-      iconTheme: const IconThemeData(
-        color: AppColors.textPrimary,
-      ),
+      iconTheme: const IconThemeData(color: AppColors.textPrimary),
     );
   }
 }

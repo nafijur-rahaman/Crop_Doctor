@@ -11,11 +11,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:crop_disease_detector/main.dart';
 
 void main() {
-  testWidgets('app shows auth screen', (WidgetTester tester) async {
-    await tester.pumpWidget(const AgroDiagnoseApp());
+  testWidgets('app shows welcome screen', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.0;
 
-    expect(find.text('AgroDiagnose'), findsOneWidget);
-    expect(find.text('Welcome Back'), findsOneWidget);
-    expect(find.byType(ElevatedButton), findsOneWidget);
+    await tester.pumpWidget(const CropDiseaseDetection());
+
+    expect(find.text('Scan & Diagnose'), findsOneWidget);
+    expect(find.text('Create Account'), findsOneWidget);
+
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
   });
 }

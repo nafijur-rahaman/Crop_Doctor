@@ -1,8 +1,10 @@
 import 'dart:typed_data';
 
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../widgets/custom_notification.dart';
 import 'result_screen.dart';
 
 class CameraScreen extends StatefulWidget {
@@ -14,7 +16,129 @@ class CameraScreen extends StatefulWidget {
 
 class _CameraScreenState extends State<CameraScreen> {
   final ImagePicker _picker = ImagePicker();
+  CameraController? _cameraController;
   bool _isPickingImage = false;
+  bool _isCameraInitialized = false;
+  FlashMode _flashMode = FlashMode.off;
+
+  @override
+  void initState() {
+    super.initState();
+    _initCamera();
+  }
+
+  Future<void> _initCamera() async {
+    try {
+      final List<CameraDescription> cameras = await availableCameras();
+      if (cameras.isEmpty) return;
+
+      final CameraDescription backCamera = cameras.firstWhere(
+        (c) => c.lensDirection == CameraLensDirection.back,
+        orElse: () => cameras.first,
+      );
+
+      _cameraController = CameraController(
+        backCamera,
+        ResolutionPreset.high,
+        enableAudio: false,
+      );
+
+      await _cameraController!.initialize();
+      if (!mounted) return;
+      setState(() {
+        _isCameraInitialized = true;
+      });
+    } catch (e) {
+      debugPrint('Camera init error: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _cameraController?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _takePicture() async {
+    if (_cameraController == null || !_cameraController!.value.isInitialized) {
+      // Fallback to picker if hardware camera failed
+      _pickImage(ImageSource.camera);
+      return;
+    }
+
+    if (_isPickingImage) return;
+
+    setState(() {
+      _isPickingImage = true;
+    });
+
+    try {
+      final XFile photo = await _cameraController!.takePicture();
+      if (!mounted) return;
+      
+      final Uint8List imageBytes = await photo.readAsBytes();
+      if (!mounted) return;
+
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ResultScreen(imageBytes: imageBytes),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      CustomNotification.show(context, 'Could not capture photo. Please try again.');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPickingImage = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _toggleFlash() async {
+    if (_cameraController == null || !_cameraController!.value.isInitialized) {
+      return;
+    }
+
+    FlashMode nextMode;
+    switch (_flashMode) {
+      case FlashMode.off:
+        nextMode = FlashMode.auto;
+        break;
+      case FlashMode.auto:
+        nextMode = FlashMode.torch;
+        break;
+      case FlashMode.torch:
+      case FlashMode.always:
+        nextMode = FlashMode.off;
+        break;
+    }
+
+    try {
+      await _cameraController!.setFlashMode(nextMode);
+      setState(() {
+        _flashMode = nextMode;
+      });
+    } catch (e) {
+      if (mounted) {
+        CustomNotification.show(context, 'Could not change flash mode.');
+      }
+    }
+  }
+
+  IconData _getFlashIcon() {
+    switch (_flashMode) {
+      case FlashMode.off:
+        return Icons.flash_off_outlined;
+      case FlashMode.auto:
+        return Icons.flash_auto_outlined;
+      case FlashMode.torch:
+      case FlashMode.always:
+        return Icons.flash_on_outlined;
+    }
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     if (_isPickingImage) return;
@@ -50,11 +174,7 @@ class _CameraScreenState extends State<CameraScreen> {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Could not open image picker. Please try again.'),
-        ),
-      );
+      CustomNotification.show(context, 'Could not open image picker. Please try again.');
     } finally {
       if (mounted) {
         setState(() {
@@ -70,6 +190,10 @@ class _CameraScreenState extends State<CameraScreen> {
       backgroundColor: const Color(0xFF0A191E),
       body: Stack(
         children: [
+          if (_isCameraInitialized && _cameraController != null)
+            Positioned.fill(
+              child: CameraPreview(_cameraController!),
+            ),
           Positioned(
             top: 50,
             left: 20,
@@ -82,14 +206,8 @@ class _CameraScreenState extends State<CameraScreen> {
                   onTap: () => Navigator.pop(context),
                 ),
                 _buildCircleIcon(
-                  icon: Icons.bolt_outlined,
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Flash settings will be added later.'),
-                      ),
-                    );
-                  },
+                  icon: _getFlashIcon(),
+                  onTap: _toggleFlash,
                 ),
               ],
             ),
@@ -105,12 +223,12 @@ class _CameraScreenState extends State<CameraScreen> {
                   vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.6),
+                  color: Colors.black.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(25),
                 ),
                 child: Text(
                   _isPickingImage
-                      ? 'Opening image picker...'
+                      ? 'Processing...'
                       : 'Align the affected leaf within the frame',
                   style: const TextStyle(
                     color: Colors.white,
@@ -136,11 +254,13 @@ class _CameraScreenState extends State<CameraScreen> {
                       ? const CircularProgressIndicator(
                           color: Color(0xFF00A36C),
                         )
-                      : const Icon(
-                          Icons.eco_outlined,
-                          color: Color(0xFF00A36C),
-                          size: 80,
-                        ),
+                      : (!_isCameraInitialized
+                          ? const Icon(
+                              Icons.eco_outlined,
+                              color: Color(0xFF00A36C),
+                              size: 80,
+                            )
+                          : const SizedBox.shrink()),
                 ],
               ),
             ),
@@ -162,11 +282,7 @@ class _CameraScreenState extends State<CameraScreen> {
                   _buildBottomAction(
                     icon: Icons.insights_outlined,
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Insights will be added later.'),
-                        ),
-                      );
+                      CustomNotification.show(context, 'Insights will be added later.');
                     },
                   ),
                 ],
@@ -187,7 +303,7 @@ class _CameraScreenState extends State<CameraScreen> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
+          color: Colors.white.withValues(alpha: 0.1),
           shape: BoxShape.circle,
         ),
         child: Icon(icon, color: Colors.white, size: 24),
@@ -204,7 +320,7 @@ class _CameraScreenState extends State<CameraScreen> {
       child: Container(
         padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
+          color: Colors.white.withValues(alpha: 0.1),
           shape: BoxShape.circle,
         ),
         child: Icon(icon, color: Colors.white, size: 26),
@@ -214,7 +330,7 @@ class _CameraScreenState extends State<CameraScreen> {
 
   Widget _buildShutterButton() {
     return GestureDetector(
-      onTap: () => _pickImage(ImageSource.camera),
+      onTap: _takePicture, // CHANGED from _pickImage
       child: Container(
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(

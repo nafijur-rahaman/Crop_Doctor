@@ -1,31 +1,68 @@
 import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 
 import '../app_state.dart';
+import '../widgets/custom_notification.dart';
 import 'forum_screen.dart';
 
+import '../models/history_item.dart';
+
 class ResultScreen extends StatelessWidget {
-  const ResultScreen({super.key, this.imageBytes});
+  const ResultScreen({
+    super.key,
+    this.imageBytes,
+    this.diagnosisTitle = 'Tomato Early Blight',
+    this.diagnosisColor = Colors.red,
+    this.scientificName = 'Fungal Infection - Alternaria solani',
+    this.matchPercentage = '98%',
+    this.actions = const [
+      RecommendationAction(
+        icon: Icons.cut_outlined,
+        title: 'Prune infected leaves',
+        description: 'Remove and destroy all leaves showing spots to prevent spreading.',
+      ),
+      RecommendationAction(
+        icon: Icons.opacity_outlined,
+        title: 'Apply Copper Fungicide',
+        description: 'Spray a copper-based fungicide every 7-10 days.',
+      ),
+      RecommendationAction(
+        icon: Icons.water_drop_outlined,
+        title: 'Water at the base',
+        description: 'Avoid overhead watering to keep foliage dry.',
+      ),
+    ],
+    this.isHistoryView = false,
+  });
 
   final Uint8List? imageBytes;
-  static const String _diagnosisTitle = 'Tomato Early Blight';
-  static const Color _diagnosisColor = Colors.red;
+  final String diagnosisTitle;
+  final Color diagnosisColor;
+  final String scientificName;
+  final String matchPercentage;
+  final List<RecommendationAction> actions;
+  final bool isHistoryView;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FB),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.black),
+          icon: Icon(
+            Icons.close,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Analysis Result',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -66,9 +103,9 @@ class ResultScreen extends StatelessWidget {
                       color: const Color(0xFF00A36C),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Text(
-                      '98% Match',
-                      style: TextStyle(
+                    child: Text(
+                      matchPercentage.contains('%') ? matchPercentage : '$matchPercentage% Match',
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
@@ -81,32 +118,32 @@ class ResultScreen extends StatelessWidget {
             const SizedBox(height: 25),
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
-                    _diagnosisTitle,
+                    diagnosisTitle,
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0A191E),
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.red[50],
+                    color: diagnosisColor.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.warning_amber_rounded,
-                    color: Colors.red,
+                    color: diagnosisColor,
                   ),
                 ),
               ],
             ),
-            const Text(
-              'Fungal Infection - Alternaria solani',
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+            Text(
+              scientificName,
+              style: const TextStyle(color: Colors.grey, fontSize: 14),
             ),
             const SizedBox(height: 25),
             const Text(
@@ -114,21 +151,12 @@ class ResultScreen extends StatelessWidget {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 15),
-            _buildActionItem(
-              Icons.cut_outlined,
-              'Prune infected leaves',
-              'Remove and destroy all leaves showing spots to prevent spreading.',
-            ),
-            _buildActionItem(
-              Icons.opacity_outlined,
-              'Apply Copper Fungicide',
-              'Spray a copper-based fungicide every 7-10 days.',
-            ),
-            _buildActionItem(
-              Icons.water_drop_outlined,
-              'Water at the base',
-              'Avoid overhead watering to keep foliage dry.',
-            ),
+            ...actions.map((action) => _buildActionItem(
+              context,
+              action.icon,
+              action.title,
+              action.description,
+            )),
             const SizedBox(height: 30),
             Container(
               padding: const EdgeInsets.all(20),
@@ -157,10 +185,7 @@ class ResultScreen extends StatelessWidget {
                         ),
                         Text(
                           'Talk to a certified agronomist now.',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          ),
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
                         ),
                       ],
                     ),
@@ -189,17 +214,19 @@ class ResultScreen extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: Padding(
+      bottomNavigationBar: isHistoryView ? null : Padding(
         padding: const EdgeInsets.all(20),
         child: ElevatedButton(
           onPressed: () {
             AgroAppScope.of(context).saveDiagnosisToHistory(
-              title: _diagnosisTitle,
-              statusColor: _diagnosisColor,
+              title: diagnosisTitle,
+              statusColor: diagnosisColor,
+              scientificName: scientificName,
+              matchPercentage: matchPercentage,
+              imageBytes: imageBytes,
+              actions: actions,
             );
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Saved to history.')),
-            );
+            CustomNotification.show(context, 'Saved to history.');
             Navigator.pop(context);
           },
           style: ElevatedButton.styleFrom(
@@ -222,7 +249,12 @@ class ResultScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionItem(IconData icon, String title, String desc) {
+  Widget _buildActionItem(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String desc,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Row(
@@ -231,7 +263,7 @@ class ResultScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: const Color(0xFF00A36C)),
