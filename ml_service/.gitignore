@@ -29,3 +29,6 @@ build/
 # IDEs
 .vscode/
 .idea/
+
+# Ignore test images
+test_images/
