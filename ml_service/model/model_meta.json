@@ -1,0 +1,17 @@
+{
+  "model_file": "plant_disease_model.keras",
+  "input_size": [
+    224,
+    224,
+    3
+  ],
+  "preprocessing": "mobilenet_v2.preprocess_input \u2014 scales pixel [0,255] to [-1,1]",
+  "num_classes": 38,
+  "val_accuracy": 0.9377,
+  "tta_steps": 8,
+  "confidence_threshold": 0.3872,
+  "entropy_threshold": 0.6202,
+  "ood_rejection_rule": "reject if max_confidence < confidence_threshold OR normalized_entropy > entropy_threshold",
+  "trained_with_tf": "2.19.0",
+  "trained_with_keras": "3.13.2"
+}
