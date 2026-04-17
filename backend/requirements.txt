@@ -1,0 +1,8 @@
+django
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+django-environ
+django-redis
+redis
+

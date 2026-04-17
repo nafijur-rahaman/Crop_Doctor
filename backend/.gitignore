@@ -34,3 +34,7 @@ env/
 
 profile_pics
 ticket_messages
+*.json
+
+
+.cursor/
