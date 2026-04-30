@@ -33,8 +33,7 @@ INSTALLED_APPS = [
     
     #third party apps
     "rest_framework",
-    "rest_framework_simplejwt",
-    "rest_framework_simplejwt.token_blacklist",   # enables logout token blacklisting
+    "rest_framework.authtoken",
     "corsheaders",
 
 
@@ -73,61 +72,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'crop_doctor_server.wsgi.application'
 
-# ── DRF default config 
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.TokenAuthentication",
     ],
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",
-    ],
-    "DEFAULT_RENDERER_CLASSES": [
-        "rest_framework.renderers.JSONRenderer",
-    ],
-    "DEFAULT_THROTTLE_CLASSES": [
-        "rest_framework.throttling.AnonRateThrottle",
-        "rest_framework.throttling.UserRateThrottle",
-    ],
-    "DEFAULT_THROTTLE_RATES": {
-        "anon": "60/hour",
-        "user": "500/hour",
-    },
-    "EXCEPTION_HANDLER": "rest_framework.views.exception_handler",
-}
-
-# ── JWT settings ──────────────────────────────────────────────────────────────
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME":  timedelta(minutes=15),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
-
-    # Rotating refresh tokens: each use generates a new refresh token
-    # and blacklists the old one — prevents token reuse attacks
-    "ROTATE_REFRESH_TOKENS":    True,
-    "BLACKLIST_AFTER_ROTATION": True,
-
-    "UPDATE_LAST_LOGIN": True,
-    "AUTH_HEADER_TYPES": ("Bearer",),
-    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
-
-    # Add role to JWT payload so mobile app can check it without an extra API call
-    "TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainPairSerializer",
 }
 
 
-
-# ── Redis cache (used for guest scan throttling) ───────────────────────────────
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": env("REDIS_URL", default="redis://127.0.0.1:6379/1"),
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            # Do not crash API requests when local Redis is unavailable.
-            # Cache calls fail silently and behave like cache misses.
-            "IGNORE_EXCEPTIONS": True,
-        },
-    }
-}
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True

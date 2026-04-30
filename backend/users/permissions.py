@@ -1,80 +1,40 @@
 from rest_framework.permissions import BasePermission
 
 
-# ── Paid tier 
-
-class IsPaidUser(BasePermission):
-
-    message = "A paid subscription is required to access this feature."
+class RolePermission(BasePermission):
+    allowed_roles = []
+    message = "You are not allowed to access this."
 
     def has_permission(self, request, view):
         return (
-            request.user
-            and request.user.is_authenticated
-            and request.user.is_paid_or_above
+            request.user.is_authenticated
+            and request.user.role in self.allowed_roles
         )
 
 
-# ── Expert tier 
-
-class IsExpert(BasePermission):
-
-    message = "Expert access is required."
-
-    def has_permission(self, request, view):
-        return (
-            request.user
-            and request.user.is_authenticated
-            and request.user.is_expert_or_above
-        )
+class IsPaidUser(RolePermission):
+    allowed_roles = ["paid"]
 
 
-# ── Super admin 
-
-class IsSuperAdmin(BasePermission):
-
-    message = "Super admin access is required."
-
-    def has_permission(self, request, view):
-        return (
-            request.user
-            and request.user.is_authenticated
-            and request.user.is_superadmin
-        )
+class IsExpert(RolePermission):
+    allowed_roles = ["expert"]
 
 
-# ── Read-only for paid, write for expert 
-
-class IsPaidReadExpertWrite(BasePermission):
-
-    message = "You do not have permission for this action."
-
-    def has_permission(self, request, view):
-        if not (request.user and request.user.is_authenticated):
-            return False
-        if request.method in ("GET", "HEAD", "OPTIONS"):
-            return request.user.is_paid_or_above
-        return request.user.is_expert_or_above
+class IsSuperAdmin(RolePermission):
+    allowed_roles = ["superadmin"]
 
 
-# ── Owner or admin ────────────────────────────────────────────────────────────
-
-class IsOwnerOrSuperAdmin(BasePermission):
-
-    message = "You do not have permission to access this resource."
-
-    def has_object_permission(self, request, view, obj):
-        if request.user and request.user.is_superadmin:
-            return True
-        owner = getattr(obj, "user", obj)
-        return owner == request.user
+class IsPremiumAccess(RolePermission):
+    allowed_roles = [
+        "paid",
+        "expert",
+        "superadmin",
+    ]
 
 
-# ── Safe-read 
+class IsExpertAccess(RolePermission):
+    allowed_roles = [
+        "expert",
+        "superadmin",
+    ]
 
-class IsAuthenticatedOrGuestReadOnly(BasePermission):
-
-    def has_permission(self, request, view):
-        if request.method in ("GET", "HEAD", "OPTIONS"):
-            return True
-        return request.user and request.user.is_authenticated
