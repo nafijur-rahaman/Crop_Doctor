@@ -7,7 +7,34 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env()
-environ.Env.read_env(".env")
+_dotenv_base = BASE_DIR / ".env"
+_dotenv_local = BASE_DIR / "crop_doctor_server" / ".env"
+if _dotenv_base.exists():
+    environ.Env.read_env(_dotenv_base)
+elif _dotenv_local.exists():
+    environ.Env.read_env(_dotenv_local)
+else:
+    environ.Env.read_env(".env")
+
+GEMINI_API_KEY = env("GEMINI_API_KEY", default="")
+GEMINI_MODEL = env("GEMINI_MODEL", default="gemini-1.5-flash-latest")
+GEMINI_DEBUG = env.bool("GEMINI_DEBUG", default=False)
+GEMINI_LIST_MODELS = env.bool("GEMINI_LIST_MODELS", default=False)
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "loggers": {
+        "scan": {
+            "handlers": ["console"],
+            "level": "DEBUG" if GEMINI_DEBUG else "INFO",
+            "propagate": False,
+        },
+    },
+}
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -37,7 +64,8 @@ INSTALLED_APPS = [
     "corsheaders",
 
 
-    'users'    	
+    'users', 	
+    'scan',
 ]
 
 MIDDLEWARE = [
