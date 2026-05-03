@@ -153,13 +153,19 @@ class PaymentSuccessAPIView(APIView):
             transaction_id=tran_id
         ).first()
         
+        if not subscription:
+            return Response({"error": "invalid transaction"}, status=404)   
+        
+        if subscription.status == "active":
+            return Response({
+                "message": "Subscription already active",
+                "transaction_id": tran_id
+            })
+        
         subscription.status = "active"
         subscription.activate()
         subscription.save()
-        return Response({
-            "message": "Payment received. waiting for verification...",
-            "transaction_id": tran_id
-        })
+        return Response({"message": "Subscription activated"}, status=status.HTTP_200_OK)
 
 
 @method_decorator(csrf_exempt, name="dispatch")
