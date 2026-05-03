@@ -1,6 +1,8 @@
 import uuid
 import requests
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -84,14 +86,21 @@ class CreateSubscriptionPaymentAPIView(APIView):
     def post(self, request):
         plan_id = request.data.get("plan_id")
 
-        plan = SubscriptionPlan.objects.get(id=plan_id)
+        if not plan_id:
+            return Response({"error": "plan_id required"}, status=400)
+
+        try:
+            plan = SubscriptionPlan.objects.get(id=plan_id)
+        except SubscriptionPlan.DoesNotExist:
+            return Response({"error": "Invalid plan"}, status=404)
 
         tran_id = str(uuid.uuid4())
 
         subscription = UserSubscription.objects.create(
             user=request.user,
             plan=plan,
-            transaction_id=tran_id
+            transaction_id=tran_id,
+            status="pending"
         )
 
         payload = {
@@ -100,15 +109,19 @@ class CreateSubscriptionPaymentAPIView(APIView):
             "total_amount": str(plan.price),
             "currency": "BDT",
             "tran_id": tran_id,
-            "success_url": "http://127.0.0.1:8000/api/payment-success/",
-            "fail_url": "https://yourdomain.com/api/subscriptions/payment/fail/",
-            "cancel_url": "https://yourdomain.com/api/subscriptions/payment/cancel/",
-            "ipn_url": "https://yourdomain.com/api/subscriptions/payment/ipn/",
-            "product_name": plan.name,
+
+
+            "success_url": "https://cropdoctor.mrshakil.site/api/subscriptions/payment-success/",
+            "fail_url": "https://cropdoctor.mrshakil.site/api/subscriptions/payment-fail/",
+            "cancel_url": "https://cropdoctor.mrshakil.site/api/subscriptions/payment-cancel/",
+            "ipn_url": "https://cropdoctor.mrshakil.site/api/subscriptions/payment-ipn/",
+
+            "product_name": plan.name,  
             "product_category": "Subscription",
             "product_profile": "service",
+
             "cus_name": request.user.username,
-            "cus_email": request.user.email,
+            "cus_email": request.user.email or "",
             "shipping_method": "NO",
             "num_of_item": 1,
         }
@@ -133,6 +146,9 @@ class PaymentSuccessAPIView(APIView):
     def post(self, request):
         tran_id = request.data.get("tran_id")
 
+        if not tran_id:
+            return Response({"error": "tran_id required"}, status=400)
+
         subscription = UserSubscription.objects.filter(
             transaction_id=tran_id
         ).first()
@@ -140,11 +156,64 @@ class PaymentSuccessAPIView(APIView):
         if not subscription:
             return Response({"error": "invalid transaction"}, status=404)
 
-        subscription.activate()
-        subscription.user.refresh_from_db()
 
         return Response({
-            "message": "subscription activated",
-            "role": subscription.user.role,
-            "expires_at": subscription.end_date
+            "message": "Payment received. waiting for verification...",
+            "transaction_id": tran_id
         })
+        
+
+@method_decorator(csrf_exempt, name="dispatch")
+class PaymentIPNAPIView(APIView):
+
+    def post(self, request):
+        data = request.data
+
+        tran_id = data.get("tran_id")
+        status = data.get("status")
+
+        if not tran_id:
+            return Response({"error": "missing tran_id"}, status=400)
+
+        try:
+            subscription = UserSubscription.objects.get(transaction_id=tran_id)
+        except UserSubscription.DoesNotExist:
+            return Response({"error": "invalid transaction"}, status=404)
+
+   
+        if status == "VALID":
+            subscription.status = "active"
+            subscription.activate()
+            subscription.save()
+
+        elif status == "FAILED":
+            subscription.status = "failed"
+            subscription.save()
+
+        return Response({"message": "IPN processed"})
+    
+
+class PaymentFailAPIView(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        tran_id = request.data.get("tran_id")
+
+        UserSubscription.objects.filter(
+            transaction_id=tran_id
+        ).update(status="failed")
+
+        return Response({"message": "Payment failed"})
+    
+
+class PaymentCancelAPIView(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        tran_id = request.data.get("tran_id")
+
+        UserSubscription.objects.filter(
+            transaction_id=tran_id
+        ).update(status="cancelled")
+
+        return Response({"message": "Payment cancelled"})
