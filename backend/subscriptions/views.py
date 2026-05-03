@@ -152,16 +152,15 @@ class PaymentSuccessAPIView(APIView):
         subscription = UserSubscription.objects.filter(
             transaction_id=tran_id
         ).first()
-
-        if not subscription:
-            return Response({"error": "invalid transaction"}, status=404)
-
-
+        
+        subscription.status = "active"
+        subscription.activate()
+        subscription.save()
         return Response({
             "message": "Payment received. waiting for verification...",
             "transaction_id": tran_id
         })
-        
+
 
 @method_decorator(csrf_exempt, name="dispatch")
 class PaymentIPNAPIView(APIView):
