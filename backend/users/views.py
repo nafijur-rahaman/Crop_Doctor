@@ -135,7 +135,9 @@ class ExpertUserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewse
     serializer_class = ExpertUserSerializer
 
     def get_queryset(self):
-        return User.objects.filter(Q(role="paid") | Q(role="expert")).order_by("-date_joined")
+        return User.objects.filter(
+            Q(role="guest") | Q(role="paid") | Q(role="expert")
+        ).order_by("-date_joined")
 
     @action(detail=True, methods=["patch"], url_path="verify")
     def verify(self, request, pk=None):

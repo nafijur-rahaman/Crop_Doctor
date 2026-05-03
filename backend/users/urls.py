@@ -14,9 +14,9 @@ router.register(r"admin/users", AdminUserViewSet, basename="admin-users")
 router.register(r"expert/users", ExpertUserViewSet, basename="expert-users")
 
 urlpatterns = [
-    path("register/", RegisterAPIView.as_view()),
-    path("login/", LoginAPIView.as_view()),
-    path("profile/", ProfileAPIView.as_view()),
-    path("logout/", LogoutAPIView.as_view()),
+    path("register/", RegisterAPIView.as_view(), name="register"),
+    path("login/", LoginAPIView.as_view(), name="login"),
+    path("profile/", ProfileAPIView.as_view(), name="profile"),
+    path("logout/", LogoutAPIView.as_view(), name="logout"),
     *router.urls,
 ]

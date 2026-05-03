@@ -66,6 +66,7 @@ INSTALLED_APPS = [
 
     'users', 	
     'scan',
+    'subscriptions',
 ]
 
 MIDDLEWARE = [
@@ -167,3 +168,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+SSLCOMMERZ_STORE_ID = env("SSLCOMMERZ_STORE_ID", default="")
+SSLCOMMERZ_STORE_PASSWORD = env("SSLCOMMERZ_STORE_PASSWORD", default="")
+SSLCOMMERZ_BASE_URL = env("SSLCOMMERZ_BASE_URL", default="")
+

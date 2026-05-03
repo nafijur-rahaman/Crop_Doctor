@@ -25,10 +25,11 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop("confirm_password")
-
         password = validated_data.pop("password")
+        validated_data.pop("role", None)
 
         user = User(**validated_data)
+        user.role = "guest"
         user.set_password(password)
         user.save()
 
