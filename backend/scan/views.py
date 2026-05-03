@@ -1,16 +1,32 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import BasePermission
+import re
 
 from .services import (
     get_prediction,
     check_guest_limit,
+    consume_guest_scan,
     get_solution,
     select_best_prediction_for_crop,
 )
+from users.permissions import IsPremiumAccess
 
 from .models import ScanHistory
 
+
+class IsGuestOrPremium(BasePermission):
+    message = "Guest limit reached or active subscription required."
+
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return True
+        return IsPremiumAccess().has_permission(request, view)
+
+
+
 class ScanAPIView(APIView):
+    permission_classes = [IsGuestOrPremium]
 
     def post(self, request):
 
@@ -18,7 +34,7 @@ class ScanAPIView(APIView):
         crop = request.data.get("crop")  
 
         user = request.user if request.user.is_authenticated else None
-        guest_id = request.data.get("guest_id")
+        guest_id = None
 
         if image is None:
             return Response({"error": "image file required"}, status=400)
@@ -26,22 +42,15 @@ class ScanAPIView(APIView):
         if not crop:
             return Response({"error": "crop required"}, status=400)
 
-        # -----------------------
-        # 1. GUEST LIMIT CHECK
-        # -----------------------
-        if not user:
-
+        if user is None:
+            guest_id = request.data.get("guest_id") or request.headers.get("X-Guest-Id")
             if not guest_id:
-                return Response({"error": "guest_id required"}, status=400)
-
+                return Response({"error": "guest_id required for guest scan"}, status=400)
             if not check_guest_limit(guest_id):
-                return Response(
-                    {"error": "Weekly scan limit exceeded"},
-                    status=403
-                )
+                return Response({"error": "Weekly guest scan limit exceeded (3)"}, status=403)
 
         # -----------------------
-        # 2. ML PREDICTION
+        # 1. ML PREDICTION
         # -----------------------
         prediction = get_prediction(image)
 
@@ -113,6 +122,8 @@ class ScanAPIView(APIView):
             disease_name=disease,
             confidence=confidence
         )
+        if user is None and guest_id:
+            consume_guest_scan(guest_id)
 
         # -----------------------
         # 6. FINAL RESPONSE

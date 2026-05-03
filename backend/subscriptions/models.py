@@ -1,7 +1,9 @@
-from django.db import models
-from django.conf import settings
-from django.utils import timezone
 from datetime import timedelta
+
+from django.conf import settings
+from django.db import models
+from django.db.models import Q
+from django.utils import timezone
 
 
 class SubscriptionPlan(models.Model):
@@ -52,6 +54,17 @@ class UserSubscription(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    @classmethod
+    def active_now_for_user(cls, user):
+        """Subscriptions counted as currently valid (active window includes now)."""
+        now = timezone.now()
+        return cls.objects.filter(
+            user=user,
+            status="active",
+            is_active=True,
+            end_date__gte=now,
+        ).filter(Q(start_date__isnull=True) | Q(start_date__lte=now))
+
     def _promote_guest_to_paid(self):
         """Registered users start as guest; an active plan makes them paid."""
         user = self.user
@@ -73,9 +86,7 @@ class UserSubscription(models.Model):
         self.status = "cancelled"
         self.is_active = False
         self.save()
-        has_active = UserSubscription.objects.filter(
-            user=user, is_active=True, status="active"
-        ).exists()
+        has_active = self.__class__.active_now_for_user(user).exists()
         if not has_active and user.role == "paid":
             user.role = "guest"
             user.save(update_fields=["role"])

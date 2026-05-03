@@ -13,15 +13,23 @@ from users.permissions import IsPremiumAccess
 class QuestionAPIView(APIView):
     permission_classes = [IsAuthenticated, IsPremiumAccess]
     
-    def get(self, request):
-        questions = Question.objects.filter(user=request.user)
-        serializer = QuestionSerializer(questions, many=True)
-        return Response(serializer.data)
-    
-    def get(self, request, pk):
-        question = get_object_or_404(Question, pk=pk)
-        serializer = QuestionSerializer(question)
-        return Response(serializer.data)
+    def get(self, request, pk=None):
+        if pk:
+            question = get_object_or_404(Question, pk=pk)
+            serializer = QuestionSerializer(question)
+            return Response({
+                "success": True,
+                "question": serializer.data
+            }, status=status.HTTP_200_OK)
+        else:
+            questions = Question.objects.filter(user=request.user)
+            serializer = QuestionSerializer(questions, many=True)
+            return Response({
+                "success": True,
+                "questions": serializer.data
+            }, status=status.HTTP_200_OK)
+
+
 
     def post(self, request):
 
@@ -49,35 +57,45 @@ class QuestionAPIView(APIView):
         question = get_object_or_404(Question, pk=pk)
 
         if question.user != request.user and request.user.role != "superadmin":
-            return Response({"error": "not allowed"}, status=status.HTTP_403_FORBIDDEN)
+            return Response({
+                "success": False,
+                "message": "not allowed"
+            }, status=status.HTTP_403_FORBIDDEN)
 
         question.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({
+            "success": True,
+            "message": "Question deleted successfully"
+        }, status=status.HTTP_200_OK)
 
 
 class AnswerAPIView(APIView):
     permission_classes = [IsAuthenticated, IsPremiumAccess]
     
     
-    def get(self, request):
-        answers = Answer.objects.filter(user=request.user)
-        serializer = AnswerSerializer(answers, many=True)
-        return Response(serializer.data)
-    
-    def get(self, request, pk):
-        answer = get_object_or_404(Answer, pk=pk)
-        serializer = AnswerSerializer(answer)
-        return Response(serializer.data)
+    def get(self, request, pk=None):
+        if pk:
+            answer = get_object_or_404(Answer, pk=pk)
+            serializer = AnswerSerializer(answer)
+            return Response({
+                "success": True,
+                "answer": serializer.data
+            }, status=status.HTTP_200_OK)
+        else:
+            answers = Answer.objects.filter(user=request.user)
+            serializer = AnswerSerializer(answers, many=True)
+            return Response({
+                "success": True,
+                "answers": serializer.data
+            }, status=status.HTTP_200_OK)
+
 
     def post(self, request):
 
-        data = request.data.copy()
-        data["user"] = request.user.id
-
-        serializer = AnswerSerializer(data=data)
+        serializer = AnswerSerializer(data=request.data)
 
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(user=request.user)
             return Response(serializer.data)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -86,7 +104,9 @@ class AnswerAPIView(APIView):
         answer = get_object_or_404(Answer, pk=pk)
         if answer.user != request.user and request.user.role != "superadmin":
             return Response({"error": "not allowed"}, status=status.HTTP_403_FORBIDDEN)
-        serializer = AnswerSerializer(answer, data=request.data, partial=True)
+        serializer = AnswerSerializer(
+            answer, data=request.data, partial=True, context={"request": request}
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -97,7 +117,10 @@ class AnswerAPIView(APIView):
         if answer.user != request.user and request.user.role != "superadmin":
             return Response({"error": "not allowed"}, status=status.HTTP_403_FORBIDDEN)
         answer.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({
+            "success": True,
+            "message": "Answer deleted successfully"
+        }, status=status.HTTP_200_OK)
 
 
 class ToggleLikeAPIView(APIView):

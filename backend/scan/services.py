@@ -2,6 +2,7 @@ import requests
 import logging
 import re
 from datetime import timedelta
+from django.core.cache import cache
 from django.utils import timezone
 from .ai_service import call_ai
 
@@ -12,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 MIN_CONFIDENCE_TO_TRUST = 25.0
+MAX_GUEST_SCANS_PER_WEEK = 3
 
 
 def _normalize_crop_name(value: str) -> str:
@@ -134,17 +136,61 @@ def get_prediction(image):
             "top_5": []
         }
 
-def check_guest_limit(guest_id):
+def _week_start(dt):
+    return (dt - timedelta(days=dt.weekday())).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
 
-    now = timezone.now()
-    seven_days_ago = now - timedelta(days=7)
 
-    count = ScanHistory.objects.filter(
+def _next_week_start(dt):
+    return (_week_start(dt) + timedelta(days=7))
+
+
+def _guest_week_cache_key(guest_id, dt):
+    iso_year, iso_week, _ = dt.isocalendar()
+    return f"scan:guest:week:{iso_year}:{iso_week}:{guest_id}"
+
+
+def _seconds_until_next_week(dt):
+    seconds = int((_next_week_start(dt) - dt).total_seconds())
+    return max(seconds, 60)
+
+
+def _get_cached_or_db_guest_week_count(guest_id, now):
+    key = _guest_week_cache_key(guest_id, now)
+    cached_count = cache.get(key)
+    if cached_count is not None:
+        return key, int(cached_count)
+
+    week_start = _week_start(now)
+    db_count = ScanHistory.objects.filter(
         guest_id=guest_id,
-        created_at__gte=seven_days_ago
+        created_at__gte=week_start,
     ).count()
+    cache.set(key, db_count, timeout=_seconds_until_next_week(now))
+    return key, int(db_count)
 
-    return count < 3
+
+def check_guest_limit(guest_id):
+    now = timezone.now()
+    _, count = _get_cached_or_db_guest_week_count(guest_id, now)
+    return count < MAX_GUEST_SCANS_PER_WEEK
+
+
+def consume_guest_scan(guest_id):
+    """
+    Reserve one guest scan in the current calendar week.
+    Returns (allowed: bool, remaining_after: int).
+    """
+    now = timezone.now()
+    key, count = _get_cached_or_db_guest_week_count(guest_id, now)
+
+    if count >= MAX_GUEST_SCANS_PER_WEEK:
+        return False, 0
+
+    updated = count + 1
+    cache.set(key, updated, timeout=_seconds_until_next_week(now))
+    return True, (MAX_GUEST_SCANS_PER_WEEK - updated)
 
 def validate_crop(crop, disease_name):
 

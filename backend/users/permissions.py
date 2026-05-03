@@ -12,8 +12,24 @@ class RolePermission(BasePermission):
         )
 
 
-class IsPaidUser(RolePermission):
-    allowed_roles = ["paid"]
+class IsPaidUser(BasePermission):
+    message = "Active subscription required."
+
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+        if request.user.role != "paid":
+            return False
+        from subscriptions.access import (
+            ensure_subscription_access_synced,
+            user_has_active_paid_subscription,
+        )
+
+        ensure_subscription_access_synced(request.user)
+        request.user.refresh_from_db(fields=["role"])
+        if request.user.role != "paid":
+            return False
+        return user_has_active_paid_subscription(request.user)
 
 
 class IsExpert(RolePermission):
@@ -24,12 +40,27 @@ class IsSuperAdmin(RolePermission):
     allowed_roles = ["superadmin"]
 
 
-class IsPremiumAccess(RolePermission):
-    allowed_roles = [
-        "paid",
-        "expert",
-        "superadmin",
-    ]
+class IsPremiumAccess(BasePermission):
+    message = "Premium access requires an active subscription."
+
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+        role = request.user.role
+        if role in ("superadmin", "expert"):
+            return True
+        if role != "paid":
+            return False
+        from subscriptions.access import (
+            ensure_subscription_access_synced,
+            user_has_active_paid_subscription,
+        )
+
+        ensure_subscription_access_synced(request.user)
+        request.user.refresh_from_db(fields=["role"])
+        if request.user.role != "paid":
+            return False
+        return user_has_active_paid_subscription(request.user)
 
 
 class IsExpertAccess(RolePermission):
