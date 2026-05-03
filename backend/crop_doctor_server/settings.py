@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'users', 	
     'scan',
     'subscriptions',
+    'forums',
 ]
 
 MIDDLEWARE = [

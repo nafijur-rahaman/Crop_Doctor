@@ -6,5 +6,6 @@ urlpatterns = [
     path('api/users/', include('users.urls')),
     path('api/', include('scan.urls')),
     path('api/', include('subscriptions.urls')),
+    path('api/', include('forums.urls')),
    
 ]
