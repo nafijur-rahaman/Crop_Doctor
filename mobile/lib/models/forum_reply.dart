@@ -10,6 +10,8 @@ class ForumReply {
     this.uselessCount = 0,
     this.hasUpvoted = false,
     this.hasDownvoted = false,
+    this.userId,
+    this.userRole,
     this.backendId,
   });
 
@@ -25,6 +27,8 @@ class ForumReply {
   final int uselessCount;
   final bool hasUpvoted;
   final bool hasDownvoted;
+  final int? userId;
+  final String? userRole;
 
   /// Numeric PK for like/unlike API calls.
   final int? backendId;
@@ -42,6 +46,8 @@ class ForumReply {
       content: (json['text'] as String?) ?? '',
       isExpert: (json['is_expert'] as bool?) ?? false,
       helpfulCount: (json['likes_count'] as num?)?.toInt() ?? 0,
+      userId: (json['user_id'] as num?)?.toInt(),
+      userRole: json['user_role'] as String?,
     );
   }
 
@@ -72,6 +78,8 @@ class ForumReply {
     int? uselessCount,
     bool? hasUpvoted,
     bool? hasDownvoted,
+    int? userId,
+    String? userRole,
     int? backendId,
   }) {
     return ForumReply(
@@ -85,6 +93,8 @@ class ForumReply {
       uselessCount: uselessCount ?? this.uselessCount,
       hasUpvoted: hasUpvoted ?? this.hasUpvoted,
       hasDownvoted: hasDownvoted ?? this.hasDownvoted,
+      userId: userId ?? this.userId,
+      userRole: userRole ?? this.userRole,
       backendId: backendId ?? this.backendId,
     );
   }

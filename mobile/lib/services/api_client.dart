@@ -53,6 +53,22 @@ class ApiClient {
         ));
   }
 
+  static Future<Map<String, dynamic>> put(
+    String path,
+    Map<String, dynamic> body, {
+    bool withAuth = true,
+  }) async {
+    return _requestWithRetry(() => http.put(
+          _uri(path),
+          headers: _headers(withAuth: withAuth),
+          body: jsonEncode(body),
+        ));
+  }
+
+  static Future<Map<String, dynamic>> delete(String path) async {
+    return _requestWithRetry(() => http.delete(_uri(path), headers: _headers()));
+  }
+
   static Future<Map<String, dynamic>> _requestWithRetry(
     Future<http.Response> Function() fn, {
     int maxRetries = 2,

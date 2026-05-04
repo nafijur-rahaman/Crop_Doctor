@@ -9,6 +9,7 @@ import '../services/stats_service.dart';
 import '../widgets/custom_notification.dart';
 import 'auth_screen.dart';
 import 'edit_profile_screen.dart';
+import 'payment_history_screen.dart';
 import 'subscription_screen.dart';
 import 'welcome_screen.dart';
 
@@ -206,6 +207,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             }
                           },
                         ),
+                        if (AuthService.isAuthenticated) ...[
+                          const Divider(height: 1, indent: 60),
+                          _buildTile(
+                            context,
+                            Icons.receipt_long_outlined,
+                            'Payment History',
+                            'View your payments and subscription details',
+                            Colors.teal,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const PaymentHistoryScreen(),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                         const Divider(height: 1, indent: 60),
                         _buildTile(
                           context,

@@ -7,6 +7,8 @@ import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import '../services/forum_service.dart';
 import '../widgets/custom_notification.dart';
+import 'my_questions_screen.dart';
+import 'question_detail_screen.dart';
 import 'subscription_screen.dart';
 
 /// Crops for the question form selector.
@@ -59,7 +61,7 @@ class _ForumScreenState extends State<ForumScreen> {
       _loadError = null;
     });
     try {
-      final posts = await ForumService.getQuestions();
+      final posts = await ForumService.getAllQuestions();
       if (!mounted) return;
       AgroAppScope.of(context).setForumPosts(posts);
       setState(() => _loadingPosts = false);
@@ -386,6 +388,16 @@ class _ForumScreenState extends State<ForumScreen> {
         actions: [
           if (!_loadingPosts)
             IconButton(
+              icon: const Icon(Icons.person_outline, color: Color(0xFF0A191E)),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MyQuestionsScreen()),
+                );
+              },
+            ),
+          if (!_loadingPosts)
+            IconButton(
               icon: const Icon(Icons.refresh, color: Color(0xFF0A191E)),
               onPressed: _loadQuestions,
             ),
@@ -507,23 +519,34 @@ class _ForumScreenState extends State<ForumScreen> {
     final isExpanded =
         post.hasExpertReply || _expandedPostIds.contains(post.id);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+    return InkWell(
+      borderRadius: BorderRadius.circular(25),
+      onTap: () {
+        if (post.backendId == null) return;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => QuestionDetailScreen(questionId: post.backendId!),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 20),
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(25),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           Row(
             children: [
               CircleAvatar(
@@ -613,7 +636,8 @@ class _ForumScreenState extends State<ForumScreen> {
           ),
           if (isExpanded && post.replies.isNotEmpty)
             ...post.replies.map((r) => _buildReplyItem(post, r)),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -11,6 +11,8 @@ class ForumPost {
     required this.icon,
     this.backendId,
     this.crop,
+    this.userId,
+    this.userRole,
   });
 
   final String id;
@@ -24,6 +26,8 @@ class ForumPost {
   /// The numeric PK from the backend, needed when posting answers.
   final int? backendId;
   final String? crop;
+  final int? userId;
+  final String? userRole;
 
   bool get hasExpertReply => replies.any((r) => r.isExpert);
 
@@ -45,6 +49,8 @@ class ForumPost {
       initials: user.isNotEmpty ? user[0].toUpperCase() : '?',
       icon: crop.isNotEmpty ? crop[0].toUpperCase() : 'Q',
       crop: crop,
+      userId: (json['user_id'] as num?)?.toInt(),
+      userRole: json['user_role'] as String?,
       replies: answers
           .map((a) => ForumReply.fromJson(a as Map<String, dynamic>))
           .toList(),
@@ -76,6 +82,8 @@ class ForumPost {
     String? icon,
     int? backendId,
     String? crop,
+    int? userId,
+    String? userRole,
   }) {
     return ForumPost(
       id: id ?? this.id,
@@ -87,6 +95,8 @@ class ForumPost {
       icon: icon ?? this.icon,
       backendId: backendId ?? this.backendId,
       crop: crop ?? this.crop,
+      userId: userId ?? this.userId,
+      userRole: userRole ?? this.userRole,
     );
   }
 }

@@ -15,7 +15,9 @@ const String kAdminUsersUrl = '/api/users/admin/users/';
 const String kExpertUsersUrl = '/api/users/expert/users/';
 
 const String kGetAllQuestionsUrl = '/api/questions/get-all-questions/';
+const String kGetAllQuestionsGlobalUrl = '/api/questions/all/';
 const String kCreateQuestionUrl = '/api/question/create-question/';
+const String kQuestionBaseUrl = '/api/question/';
 const String kCreateAnswerUrl = '/api/answer/create-answer/';
 const String kAnswerBaseUrl = '/api/answer/';
 
@@ -23,6 +25,7 @@ const String kAnswerBaseUrl = '/api/answer/';
 const String kGetPlansUrl = '/api/get-plans/';
 const String kCreateSubscriptionPaymentUrl =
     '/api/subscriptions/create-subscription-payment/';
+const String kMySubscriptionsUrl = '/api/subscriptions/my/';
 
 // Catalog (premium)
 const String kCatalogPlantsUrl = '/api/catalog/crops/';
