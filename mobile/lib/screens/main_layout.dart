@@ -6,6 +6,8 @@ import 'forum_screen.dart';
 import 'history_screen.dart';
 import 'home_screen.dart';
 import 'profile_screen.dart';
+import 'admin_panel_screen.dart';
+import 'expert_panel_screen.dart';
 import '../widgets/custom_notification.dart';
 import '../app_state.dart';
 import '../services/auth_service.dart';
@@ -144,6 +146,30 @@ class _MainLayoutState extends State<MainLayout> {
                       CustomNotification.show(context, 'Settings available soon.');
                     },
                   ),
+                  if (AuthService.role == 'expert' || AuthService.role == 'superadmin')
+                    _buildDrawerItem(
+                      Icons.medical_information_outlined,
+                      'Expert Panel',
+                      () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ExpertPanelScreen()),
+                        );
+                      },
+                    ),
+                  if (AuthService.role == 'superadmin')
+                    _buildDrawerItem(
+                      Icons.admin_panel_settings_outlined,
+                      'Admin Panel',
+                      () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const AdminPanelScreen()),
+                        );
+                      },
+                    ),
                   const Divider(indent: 20, endIndent: 20),
                   _buildDrawerItem(
                     Icons.help_outline,
@@ -326,7 +352,16 @@ class _MainLayoutState extends State<MainLayout> {
         : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6);
 
     return InkWell(
-      onTap: () => setState(() => _currentIndex = index),
+      onTap: () {
+        // Guests (including logged-in role=guest) can scan, but premium-only areas
+        // should show an upgrade/login prompt.
+        final premiumOnlyTabs = <int>{1, 3}; // Forum, History
+        if (premiumOnlyTabs.contains(index) && !AuthService.isPremiumUser) {
+          _handlePremiumRequired(context);
+          return;
+        }
+        setState(() => _currentIndex = index);
+      },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -339,6 +374,52 @@ class _MainLayoutState extends State<MainLayout> {
               fontSize: 10,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handlePremiumRequired(BuildContext context) async {
+    final bool loggedIn = AuthService.isAuthenticated;
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text('Premium Required'),
+        content: Text(
+          loggedIn
+              ? 'This feature is available for premium users. Upgrade your account to access it.'
+              : 'This feature is available for premium users. Login or register, then upgrade to access it.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
+          if (!loggedIn)
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _handleLoginPrompt(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF00A36C),
+              ),
+              child: const Text('Login / Register'),
+            ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF00A36C),
+            ),
+            child: const Text('Upgrade'),
           ),
         ],
       ),

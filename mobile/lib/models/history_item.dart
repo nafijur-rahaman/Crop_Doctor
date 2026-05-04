@@ -19,9 +19,11 @@ class HistoryItem {
     required this.time,
     required this.icon,
     required this.statusColor,
+    this.cropName = '',
     this.scientificName = '',
     this.matchPercentage = '0%',
     this.imageBytes,
+    this.imageUrl,
     this.actions = const [],
   });
 
@@ -29,8 +31,10 @@ class HistoryItem {
   final String time;
   final String icon;
   final Color statusColor;
+  final String cropName;
   final String scientificName;
   final String matchPercentage;
   final Uint8List? imageBytes;
+  final String? imageUrl;
   final List<RecommendationAction> actions;
 }

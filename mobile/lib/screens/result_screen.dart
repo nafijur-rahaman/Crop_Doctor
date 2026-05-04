@@ -13,6 +13,7 @@ class ResultScreen extends StatefulWidget {
   const ResultScreen({
     super.key,
     this.imageBytes,
+    this.imageUrl,
     // New API path: pass crop and imageBytes → scan runs on load.
     this.prefetchedResult,
     this.crop,
@@ -25,6 +26,7 @@ class ResultScreen extends StatefulWidget {
   });
 
   final Uint8List? imageBytes;
+  final String? imageUrl;
   final ScanResult? prefetchedResult;
   final String? crop;
   final bool isHistoryView;
@@ -100,6 +102,7 @@ class _ResultScreenState extends State<ResultScreen> {
       title: _result!.diseaseName,
       statusColor: _result!.statusColor,
       icon: cropLetter,
+      cropName: widget.crop ?? '',
       matchPercentage: _result!.confidencePercent,
       imageBytes: widget.imageBytes,
       actions: _result!.actions,
@@ -217,9 +220,17 @@ class _ResultScreenState extends State<ResultScreen> {
                           image: MemoryImage(widget.imageBytes!),
                           fit: BoxFit.cover,
                         )
-                      : null,
+                      : (widget.imageUrl != null &&
+                              widget.imageUrl!.isNotEmpty)
+                          ? DecorationImage(
+                              image: NetworkImage(widget.imageUrl!),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
                 ),
-                child: widget.imageBytes == null
+                child: (widget.imageBytes == null &&
+                        (widget.imageUrl == null ||
+                            widget.imageUrl!.isEmpty))
                     ? const Center(
                         child: Icon(Icons.image_not_supported_outlined,
                             size: 60, color: Colors.grey))

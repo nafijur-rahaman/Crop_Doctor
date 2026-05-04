@@ -8,6 +8,11 @@ const String kProfileUrl = '/api/users/profile/';
 const String kLogoutUrl = '/api/users/logout/';
 
 const String kScanUrl = '/api/scan/';
+const String kScanHistoryUrl = '/api/scan/history/';
+
+// Role-based panels
+const String kAdminUsersUrl = '/api/users/admin/users/';
+const String kExpertUsersUrl = '/api/users/expert/users/';
 
 const String kGetAllQuestionsUrl = '/api/questions/get-all-questions/';
 const String kCreateQuestionUrl = '/api/question/create-question/';

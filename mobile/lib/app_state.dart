@@ -111,9 +111,11 @@ class AgroAppState extends ChangeNotifier {
     required String title,
     required Color statusColor,
     String icon = 'T',
+    String cropName = '',
     String scientificName = '',
     String matchPercentage = '0%',
     Uint8List? imageBytes,
+    String? imageUrl,
     List<RecommendationAction> actions = const [],
   }) {
     _historyItems.insert(
@@ -123,9 +125,11 @@ class AgroAppState extends ChangeNotifier {
         time: 'Just now',
         icon: icon,
         statusColor: statusColor,
+        cropName: cropName,
         scientificName: scientificName,
         matchPercentage: matchPercentage,
         imageBytes: imageBytes,
+        imageUrl: imageUrl,
         actions: actions,
       ),
     );
