@@ -7,6 +7,9 @@ import 'history_screen.dart';
 import 'home_screen.dart';
 import 'profile_screen.dart';
 import '../widgets/custom_notification.dart';
+import '../app_state.dart';
+import '../services/auth_service.dart';
+import 'subscription_screen.dart';
 import 'welcome_screen.dart';
 
 class MainLayout extends StatefulWidget {
@@ -27,6 +30,24 @@ class _MainLayoutState extends State<MainLayout> {
   late int _currentIndex = widget.initialIndex;
 
   @override
+  void initState() {
+    super.initState();
+    _fetchProfileIfAuthenticated();
+  }
+
+  Future<void> _fetchProfileIfAuthenticated() async {
+    if (AuthService.isAuthenticated) {
+      try {
+        final profile = await AuthService.getProfile();
+        if (!mounted) return;
+        AgroAppScope.of(context).setProfile(profile);
+      } catch (e) {
+        debugPrint('Error fetching profile on init: $e');
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final List<Widget> pages = <Widget>[
       HomeScreen(
@@ -43,89 +64,110 @@ class _MainLayoutState extends State<MainLayout> {
       const ProfileScreen(key: ValueKey(4)),
     ];
 
+    final profile = AgroAppScope.of(context).profile;
+
     return Scaffold(
       endDrawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        child: Column(
           children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(color: AppColors.primary),
-              child: const Column(
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 60, 20, 30),
+              decoration: const BoxDecoration(
+                color: Color(0xFF00A36C),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
+                ),
+              ),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Colors.white,
+                    radius: 35,
+                    backgroundColor: Colors.white24,
                     child: Text(
-                      'TN',
-                      style: TextStyle(
-                        color: AppColors.primary,
+                      profile?.initials ?? '?',
+                      style: const TextStyle(
+                        color: Colors.white,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 15),
                   Text(
-                    'Tanjid Nafis',
-                    style: TextStyle(
+                    profile?.username ?? 'Guest User',
+                    style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 18,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    'tanjid@example.com',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                    profile?.email ?? 'Join the community',
+                    style: const TextStyle(color: Colors.white70, fontSize: 13),
                   ),
                 ],
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.person_outline),
-              title: const Text('View Profile'),
-              onTap: () {
-                Navigator.pop(context); // Close drawer
-                setState(() => _currentIndex = 4); // Go to profile
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings_outlined),
-              title: const Text('Settings'),
-              onTap: () {
-                Navigator.pop(context);
-                CustomNotification.show(
-                  context,
-                  'Settings will be available soon.',
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.help_outline),
-              title: const Text('Help & Support'),
-              onTap: () {
-                Navigator.pop(context);
-                CustomNotification.show(
-                  context,
-                  'Help & Support will be available soon.',
-                );
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Log Out', style: TextStyle(color: Colors.red)),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const WelcomeScreen(),
+            const SizedBox(height: 10),
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  _buildDrawerItem(
+                    Icons.person_outline,
+                    'View Profile',
+                    () {
+                      Navigator.pop(context);
+                      setState(() => _currentIndex = 4);
+                    },
                   ),
-                  (route) => false,
-                );
-              },
+                  _buildDrawerItem(
+                    Icons.star_outline,
+                    'Subscriptions',
+                    () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
+                      );
+                    },
+                  ),
+                  _buildDrawerItem(
+                    Icons.settings_outlined,
+                    'Settings',
+                    () {
+                      Navigator.pop(context);
+                      CustomNotification.show(context, 'Settings available soon.');
+                    },
+                  ),
+                  const Divider(indent: 20, endIndent: 20),
+                  _buildDrawerItem(
+                    Icons.help_outline,
+                    'Help & Support',
+                    () {
+                      Navigator.pop(context);
+                      CustomNotification.show(context, 'Support channel is offline.');
+                    },
+                  ),
+                  _buildDrawerItem(
+                    Icons.logout,
+                    'Log Out',
+                    () => _handleLogout(context),
+                    color: Colors.redAccent,
+                  ),
+                ],
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.all(20),
+              child: Text(
+                'v1.0.0 Stable Build',
+                style: TextStyle(color: Colors.grey, fontSize: 10),
+              ),
             ),
           ],
         ),
@@ -185,6 +227,63 @@ class _MainLayoutState extends State<MainLayout> {
         ),
       ),
     );
+  }
+
+  Widget _buildDrawerItem(
+    IconData icon,
+    String label,
+    VoidCallback onTap, {
+    Color? color,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: color ?? Colors.grey[700], size: 22),
+      title: Text(
+        label,
+        style: TextStyle(
+          color: color ?? Colors.black87,
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      onTap: onTap,
+      dense: true,
+      visualDensity: VisualDensity.compact,
+    );
+  }
+
+  Future<void> _handleLogout(BuildContext context) async {
+    Navigator.pop(context); // Close drawer
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Log Out'),
+        content: const Text('Are you sure you want to log out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            child: const Text('Log Out'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      // Clear state and navigate
+      await AuthService.logout();
+      if (!mounted) return;
+      AgroAppScope.of(context).clearProfile();
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+        (route) => false,
+      );
+    }
   }
 
   Widget _buildNavButton(IconData icon, String label, int index) {

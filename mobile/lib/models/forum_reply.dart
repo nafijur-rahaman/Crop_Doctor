@@ -10,6 +10,7 @@ class ForumReply {
     this.uselessCount = 0,
     this.hasUpvoted = false,
     this.hasDownvoted = false,
+    this.backendId,
   });
 
   final String id;
@@ -19,9 +20,46 @@ class ForumReply {
   final String content;
   final bool isExpert;
   final int helpfulCount;
+
+  /// Downvote count is local-only (backend doesn't store it).
   final int uselessCount;
   final bool hasUpvoted;
   final bool hasDownvoted;
+
+  /// Numeric PK for like/unlike API calls.
+  final int? backendId;
+
+  factory ForumReply.fromJson(Map<String, dynamic> json) {
+    final id = (json['id'] as num).toInt();
+    final user = (json['user'] as String?) ?? 'User';
+    final createdAt = (json['created_at'] as String?) ?? '';
+    return ForumReply(
+      id: id.toString(),
+      backendId: id,
+      name: user,
+      initials: user.isNotEmpty ? user[0].toUpperCase() : '?',
+      time: _formatTime(createdAt),
+      content: (json['text'] as String?) ?? '',
+      isExpert: (json['is_expert'] as bool?) ?? false,
+      helpfulCount: (json['likes_count'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  static String _formatTime(String iso) {
+    if (iso.isEmpty) return '';
+    try {
+      final dt = DateTime.parse(iso).toLocal();
+      final diff = DateTime.now().difference(dt);
+      if (diff.inMinutes < 1) return 'Just now';
+      if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
+      if (diff.inHours < 24) return '${diff.inHours} hr ago';
+      if (diff.inDays < 7) return '${diff.inDays} day${diff.inDays > 1 ? 's' : ''} ago';
+      final dt2 = DateTime.parse(iso).toLocal();
+      return '${dt2.day}/${dt2.month}/${dt2.year}';
+    } catch (_) {
+      return iso;
+    }
+  }
 
   ForumReply copyWith({
     String? id,
@@ -34,6 +72,7 @@ class ForumReply {
     int? uselessCount,
     bool? hasUpvoted,
     bool? hasDownvoted,
+    int? backendId,
   }) {
     return ForumReply(
       id: id ?? this.id,
@@ -46,7 +85,7 @@ class ForumReply {
       uselessCount: uselessCount ?? this.uselessCount,
       hasUpvoted: hasUpvoted ?? this.hasUpvoted,
       hasDownvoted: hasDownvoted ?? this.hasDownvoted,
+      backendId: backendId ?? this.backendId,
     );
   }
 }
-
