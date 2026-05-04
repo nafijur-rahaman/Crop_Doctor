@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 
 import 'app_state.dart';
 import 'core/theme.dart';
+import 'screens/main_layout.dart';
 import 'screens/welcome_screen.dart';
+import 'services/auth_service.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Restore any saved auth token from SharedPreferences before the UI loads.
+  await AuthService.init();
   runApp(const CropDiseaseDetection());
 }
 
@@ -23,10 +28,13 @@ class _CropDiseaseDetectionState extends State<CropDiseaseDetection> {
     return AgroAppScope(
       notifier: _appState,
       child: MaterialApp(
-        title: 'crop disease detection',
+        title: 'Crop Doctor',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        home: const WelcomeScreen(),
+        // If a token was restored, go straight to MainLayout, else WelcomeScreen.
+        home: AuthService.isAuthenticated
+            ? const MainLayout()
+            : const WelcomeScreen(),
       ),
     );
   }

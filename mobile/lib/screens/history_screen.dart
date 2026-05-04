@@ -97,7 +97,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 imageBytes: log.imageBytes,
                                 diagnosisTitle: log.title,
                                 diagnosisColor: log.statusColor,
-                                scientificName: log.scientificName,
                                 matchPercentage: log.matchPercentage,
                                 actions: log.actions,
                                 isHistoryView: true,
