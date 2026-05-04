@@ -5,6 +5,7 @@ import '../core/constants/app_styles.dart';
 import '../widgets/farm_card.dart';
 import '../widgets/tool_icon.dart';
 import '../widgets/custom_notification.dart';
+import '../widgets/weather_container.dart';
 import 'camera_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -85,59 +86,7 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 25),
-            Container(
-              padding: const EdgeInsets.all(AppStyles.cardPadding),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(AppStyles.radiusCard),
-                boxShadow: AppStyles.defaultShadow,
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.wb_sunny_rounded, color: Colors.orange, size: 40),
-                  SizedBox(width: 15),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '28 C, Sunny',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        Text(
-                          'Perfect for spraying',
-                          style: TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.water_drop_outlined, size: 16, color: Colors.blue),
-                  Text(
-                    ' 45%',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Icon(Icons.air, size: 16, color: Colors.grey),
-                  Text(
-                    ' 12km/h',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            const WeatherContainer(),
             const SizedBox(height: 25),
             InkWell(
               borderRadius: BorderRadius.circular(AppStyles.radiusLarge),
