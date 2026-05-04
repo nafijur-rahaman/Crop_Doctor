@@ -298,7 +298,7 @@ class _ResultScreenState extends State<ResultScreen> {
             ),
             const SizedBox(height: 15),
             ...displayActions.map((a) => _ActionTile(action: a)),
-          ] else ...[
+          ] else if (displayIsHealthy) ...[
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -313,6 +313,26 @@ class _ResultScreenState extends State<ResultScreen> {
                     child: Text(
                       'Your crop appears healthy! Continue your current care routine.',
                       style: TextStyle(color: Colors.green, fontSize: 14),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.orange, size: 32),
+                  SizedBox(width: 14),
+                  Expanded(
+                    child: Text(
+                      'No solution is available for this result yet. Please check back later.',
+                      style: TextStyle(color: Colors.orange, fontSize: 14),
                     ),
                   ),
                 ],

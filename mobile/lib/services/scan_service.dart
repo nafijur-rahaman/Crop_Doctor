@@ -55,6 +55,8 @@ class ScanService {
     final String crop = (json['crop'] as String?) ?? '';
     final double confidence =
         ((json['confidence'] as num?) ?? 0).toDouble();
+    final Map<String, dynamic>? solution =
+        (json['solution'] is Map) ? (json['solution'] as Map).cast<String, dynamic>() : null;
 
     final String createdAtRaw = (json['created_at'] as String?) ?? '';
     final String createdAt = _formatCreatedAt(createdAtRaw);
@@ -77,6 +79,41 @@ class ScanService {
 
     final String? imageUrl = _absoluteUrl((json['image'] as String?) ?? '');
 
+    final actions = <RecommendationAction>[];
+    if (solution != null) {
+      final organic = (solution['organic'] as String?) ??
+          (solution['organic_solution'] as String?) ??
+          '';
+      final chemical = (solution['chemical'] as String?) ??
+          (solution['chemical_solution'] as String?) ??
+          '';
+      final tips = (solution['tips'] as String?) ??
+          (solution['prevention_tips'] as String?) ??
+          '';
+
+      if (organic.trim().isNotEmpty) {
+        actions.add(RecommendationAction(
+          icon: Icons.eco_outlined,
+          title: 'Organic Treatment',
+          description: organic.trim(),
+        ));
+      }
+      if (chemical.trim().isNotEmpty) {
+        actions.add(RecommendationAction(
+          icon: Icons.science_outlined,
+          title: 'Chemical Treatment',
+          description: chemical.trim(),
+        ));
+      }
+      if (tips.trim().isNotEmpty) {
+        actions.add(RecommendationAction(
+          icon: Icons.shield_outlined,
+          title: 'Prevention Tips',
+          description: tips.trim(),
+        ));
+      }
+    }
+
     return HistoryItem(
       title: title,
       time: createdAt,
@@ -85,7 +122,7 @@ class ScanService {
       cropName: crop,
       matchPercentage: '${confidence.toStringAsFixed(2)}%',
       imageUrl: imageUrl,
-      actions: const [],
+      actions: actions,
     );
   }
 

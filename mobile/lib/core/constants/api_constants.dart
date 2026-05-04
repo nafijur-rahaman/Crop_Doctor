@@ -18,3 +18,8 @@ const String kGetAllQuestionsUrl = '/api/questions/get-all-questions/';
 const String kCreateQuestionUrl = '/api/question/create-question/';
 const String kCreateAnswerUrl = '/api/answer/create-answer/';
 const String kAnswerBaseUrl = '/api/answer/';
+
+// Subscriptions
+const String kGetPlansUrl = '/api/get-plans/';
+const String kCreateSubscriptionPaymentUrl =
+    '/api/subscriptions/create-subscription-payment/';

@@ -75,6 +75,17 @@ class AuthService {
     return UserProfile.fromJson(data);
   }
 
+  /// Fetches the latest profile and persists the latest server-side role locally.
+  /// This is important after subscription payment, when backend upgrades role
+  /// from `guest` to `paid` asynchronously (IPN/success callback).
+  static Future<UserProfile> refreshProfileAndRole() async {
+    final profile = await getProfile();
+    cachedRole = profile.role;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_kRole, profile.role);
+    return profile;
+  }
+
   static Future<UserProfile> updateProfile({
     required String username,
     required String email,

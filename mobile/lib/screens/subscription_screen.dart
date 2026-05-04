@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../app_state.dart';
 import '../models/subscription_plan.dart';
 import '../services/api_client.dart';
+import '../services/auth_service.dart';
 import '../services/subscription_service.dart';
 import '../widgets/custom_notification.dart';
+import 'welcome_screen.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -13,18 +16,43 @@ class SubscriptionScreen extends StatefulWidget {
   State<SubscriptionScreen> createState() => _SubscriptionScreenState();
 }
 
-class _SubscriptionScreenState extends State<SubscriptionScreen> {
+class _SubscriptionScreenState extends State<SubscriptionScreen>
+    with WidgetsBindingObserver {
   bool _loading = true;
   List<SubscriptionPlan> _plans = [];
   String? _error;
+  bool _checkingPayment = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _fetchPlans();
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // After returning from external payment page, refresh profile/role.
+      _refreshRoleAfterPayment();
+    }
+  }
+
   Future<void> _fetchPlans() async {
+    if (!AuthService.isAuthenticated) {
+      setState(() {
+        _loading = false;
+        _plans = [];
+        _error = null;
+      });
+      return;
+    }
     setState(() {
       _loading = true;
       _error = null;
@@ -48,12 +76,52 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     }
   }
 
+  Future<void> _refreshRoleAfterPayment() async {
+    if (!mounted || !AuthService.isAuthenticated) return;
+    if (_checkingPayment) return;
+
+    setState(() {
+      _checkingPayment = true;
+    });
+
+    try {
+      // Try a few times; IPN may take a moment.
+      for (int i = 0; i < 6; i++) {
+        final profile = await AuthService.refreshProfileAndRole();
+        if (!mounted) return;
+        AgroAppScope.of(context).setProfile(profile);
+        if (AuthService.isPremiumUser) {
+          CustomNotification.show(context, 'Premium activated!');
+          if (mounted) Navigator.pop(context);
+          return;
+        }
+        await Future.delayed(const Duration(seconds: 2));
+      }
+    } catch (_) {
+      // Ignore; user can manually refresh / revisit.
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _checkingPayment = false;
+      });
+    }
+  }
+
   Future<void> _handleSubscribe(SubscriptionPlan plan) async {
+    if (!AuthService.isAuthenticated) {
+      if (!mounted) return;
+      CustomNotification.show(context, 'Please login or register to upgrade.');
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => WelcomeScreen()),
+      );
+      return;
+    }
     try {
       CustomNotification.show(context, 'Redirecting to payment gateway...');
-      final url = await SubscriptionService.createPayment(plan.id);
-      if (url.isNotEmpty) {
-        final uri = Uri.parse(url);
+      final init = await SubscriptionService.createPayment(plan.id);
+      if (init.paymentUrl.isNotEmpty) {
+        final uri = Uri.parse(init.paymentUrl);
         if (await canLaunchUrl(uri)) {
           await launchUrl(uri, mode: LaunchMode.externalApplication);
         } else {
@@ -86,7 +154,81 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           ? const Center(child: CircularProgressIndicator(color: Color(0xFF00A36C)))
           : _error != null
               ? _buildErrorView()
-              : _buildPlansList(),
+              : (!AuthService.isAuthenticated
+                  ? _buildLoginRequiredView()
+                  : Stack(
+                      children: [
+                        _buildPlansList(),
+                        if (_checkingPayment)
+                          Container(
+                            color: Colors.black.withValues(alpha: 0.45),
+                            child: const Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  CircularProgressIndicator(
+                                    color: Color(0xFF00A36C),
+                                  ),
+                                  SizedBox(height: 14),
+                                  Text(
+                                    'Checking payment status...',
+                                    style: TextStyle(color: Colors.white70),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    )),
+    );
+  }
+
+  Widget _buildLoginRequiredView() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.lock_outline, color: Colors.white70, size: 56),
+            const SizedBox(height: 16),
+            const Text(
+              'Login Required',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'To upgrade to premium, please login or create an account first.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70),
+            ),
+            const SizedBox(height: 18),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => WelcomeScreen()),
+                  ).then((_) => _fetchPlans());
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00A36C),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: const Text('Login / Register'),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

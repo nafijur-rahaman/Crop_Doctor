@@ -34,11 +34,15 @@ class ScanSolution {
     required this.organicSolution,
     required this.chemicalSolution,
     this.preventionTips,
+    this.source,
+    this.message,
   });
 
   final String organicSolution;
   final String chemicalSolution;
   final String? preventionTips;
+  final String? source;
+  final String? message;
 
   List<RecommendationAction> toActions() {
     final actions = <RecommendationAction>[];
@@ -67,10 +71,20 @@ class ScanSolution {
   }
 
   factory ScanSolution.fromJson(Map<String, dynamic> json) {
+    final organic = (json['organic_solution'] as String?) ??
+        (json['organic'] as String?) ??
+        '';
+    final chemical = (json['chemical_solution'] as String?) ??
+        (json['chemical'] as String?) ??
+        '';
+    final tips = (json['prevention_tips'] as String?) ??
+        (json['tips'] as String?);
     return ScanSolution(
-      organicSolution: (json['organic_solution'] as String?) ?? '',
-      chemicalSolution: (json['chemical_solution'] as String?) ?? '',
-      preventionTips: json['prevention_tips'] as String?,
+      organicSolution: organic,
+      chemicalSolution: chemical,
+      preventionTips: tips,
+      source: json['source'] as String?,
+      message: json['message'] as String?,
     );
   }
 }
@@ -94,7 +108,7 @@ class ScanResult {
 
   Color get statusColor {
     if (isHealthy) return Colors.green;
-    if (prediction.confidence >= 0.8) return Colors.red;
+    if (prediction.confidence >= 80) return Colors.red;
     return Colors.orange;
   }
 
