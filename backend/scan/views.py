@@ -1,7 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import BasePermission
+from rest_framework import status
 import re
+
 
 from .services import (
     get_prediction,
@@ -13,7 +15,7 @@ from .services import (
 from users.permissions import IsPremiumAccess
 
 from .models import ScanHistory
-
+from .serializers import ScanHistorySerializer
 
 class IsGuestOrPremium(BasePermission):
     message = "Guest limit reached or active subscription required."
@@ -49,9 +51,7 @@ class ScanAPIView(APIView):
             if not check_guest_limit(guest_id):
                 return Response({"error": "Weekly guest scan limit exceeded (3)"}, status=403)
 
-        # -----------------------
-        # 1. ML PREDICTION
-        # -----------------------
+
         prediction = get_prediction(image)
 
         if prediction.get("status") == "error":
@@ -104,16 +104,12 @@ class ScanAPIView(APIView):
                 status=422,
             )
 
-        # -----------------------
-        # 4. SOLUTION ENGINE
-        # -----------------------
+
         solution = None
         if status not in {"crop_mismatch", "low_confidence"} and disease:
             solution = get_solution(disease, crop)
 
-        # -----------------------
-        # 5. SAVE HISTORY
-        # -----------------------
+ 
         ScanHistory.objects.create(
             user=user,
             guest_id=guest_id,
@@ -125,9 +121,7 @@ class ScanAPIView(APIView):
         if user is None and guest_id:
             consume_guest_scan(guest_id)
 
-        # -----------------------
-        # 6. FINAL RESPONSE
-        # -----------------------
+
         return Response({
             "prediction": {
                 "crop": crop,
@@ -139,3 +133,16 @@ class ScanAPIView(APIView):
             },
             "solution": solution
         })
+
+
+class ScanHistoryAPIView(APIView):
+    permission_classes = [IsPremiumAccess]
+
+    def get(self, request):
+        user = request.user
+        history = ScanHistory.objects.filter(user=user).order_by("-created_at")
+        serializer = ScanHistorySerializer(history, many=True)
+        return Response({
+            "success": True,
+            "history": serializer.data
+        }, status=status.HTTP_200_OK)

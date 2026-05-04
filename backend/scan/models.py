@@ -2,9 +2,7 @@ from django.db import models
 from django.conf import settings
 
 
-# ---------------------------
-# SCAN HISTORY
-# ---------------------------
+
 class ScanHistory(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
