@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../services/api_client.dart';
+import '../services/auth_service.dart';
 import '../widgets/custom_notification.dart';
 import 'main_layout.dart';
 import 'register_screen.dart';
@@ -12,45 +14,44 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-
-  static const Map<String, String> _dummyAccounts = <String, String>{
-    'tanjid': '123456',
-    'guestdemo': 'guest123',
-  };
-
-  @override
-  void initState() {
-    super.initState();
-    _usernameController.text = 'tanjid';
-    _passwordController.text = '123456';
-  }
+  final _usernameCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
+  bool _loading = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
-    _usernameController.dispose();
-    _passwordController.dispose();
+    _usernameCtrl.dispose();
+    _passwordCtrl.dispose();
     super.dispose();
   }
 
-  void _goToHome() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const MainLayout()),
-    );
-  }
+  Future<void> _handleLogin() async {
+    final username = _usernameCtrl.text.trim();
+    final password = _passwordCtrl.text.trim();
 
-  void _handleLogin() {
-    final String username = _usernameController.text.trim().toLowerCase();
-    final String password = _passwordController.text.trim();
-
-    if (_dummyAccounts[username] == password) {
-      _goToHome();
+    if (username.isEmpty || password.isEmpty) {
+      CustomNotification.show(context, 'Please enter username and password.');
       return;
     }
 
-    CustomNotification.show(context, 'Use dummy login: tanjid / 123456');
+    setState(() => _loading = true);
+    try {
+      await AuthService.login(username, password);
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const MainLayout()),
+      );
+    } on ApiException catch (e) {
+      if (mounted) CustomNotification.show(context, e.message);
+    } catch (_) {
+      if (mounted) {
+        CustomNotification.show(context, 'Network error. Please try again.');
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -60,7 +61,7 @@ class _AuthScreenState extends State<AuthScreen> {
       body: Stack(
         children: [
           Positioned(
-            top: MediaQuery.of(context).size.height * 0.15,
+            top: MediaQuery.of(context).size.height * 0.12,
             left: 0,
             right: 0,
             child: Column(
@@ -71,15 +72,11 @@ class _AuthScreenState extends State<AuthScreen> {
                     color: Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Icon(
-                    Icons.eco,
-                    color: Color(0xFF00A36C),
-                    size: 60,
-                  ),
+                  child: const Icon(Icons.eco, color: Color(0xFF00A36C), size: 60),
                 ),
                 const SizedBox(height: 20),
                 const Text(
-                  'Crop Disease Detection',
+                  'Crop Doctor',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 32,
@@ -97,7 +94,7 @@ class _AuthScreenState extends State<AuthScreen> {
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
-              height: MediaQuery.of(context).size.height * 0.58,
+              height: MediaQuery.of(context).size.height * 0.60,
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
               decoration: const BoxDecoration(
@@ -119,30 +116,43 @@ class _AuthScreenState extends State<AuthScreen> {
                         color: Color(0xFF0A191E),
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Dummy login: tanjid / 123456',
-                      style: TextStyle(color: Colors.grey, fontSize: 13),
-                    ),
                     const SizedBox(height: 24),
                     _buildTextField(
-                      controller: _usernameController,
+                      controller: _usernameCtrl,
                       hint: 'Username',
                       icon: Icons.person_outline,
                     ),
-                    const SizedBox(height: 20),
-                    _buildTextField(
-                      controller: _passwordController,
-                      hint: 'Password',
-                      icon: Icons.lock_outline,
-                      isPassword: true,
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _passwordCtrl,
+                      obscureText: _obscurePassword,
+                      decoration: InputDecoration(
+                        hintText: 'Password',
+                        prefixIcon: const Icon(Icons.lock_outline, color: Colors.grey),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            color: Colors.grey,
+                          ),
+                          onPressed: () =>
+                              setState(() => _obscurePassword = !_obscurePassword),
+                        ),
+                        filled: true,
+                        fillColor: const Color(0xFFF5F6F8),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 30),
                     SizedBox(
                       width: double.infinity,
                       height: 55,
                       child: ElevatedButton(
-                        onPressed: _handleLogin,
+                        onPressed: _loading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF00A36C),
                           shape: RoundedRectangleBorder(
@@ -150,21 +160,30 @@ class _AuthScreenState extends State<AuthScreen> {
                           ),
                           elevation: 0,
                         ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Login',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                        child: _loading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Login',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Icon(Icons.arrow_forward, color: Colors.white),
+                                ],
                               ),
-                            ),
-                            SizedBox(width: 10),
-                            Icon(Icons.arrow_forward, color: Colors.white),
-                          ],
-                        ),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -177,14 +196,12 @@ class _AuthScreenState extends State<AuthScreen> {
                             style: TextStyle(color: Colors.grey),
                           ),
                           GestureDetector(
-                            onTap: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const RegisterScreen(),
-                                ),
-                              );
-                            },
+                            onTap: () => Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const RegisterScreen(),
+                              ),
+                            ),
                             child: const Text(
                               'Sign Up',
                               style: TextStyle(
@@ -210,11 +227,9 @@ class _AuthScreenState extends State<AuthScreen> {
     required TextEditingController controller,
     required String hint,
     required IconData icon,
-    bool isPassword = false,
   }) {
     return TextField(
       controller: controller,
-      obscureText: isPassword,
       decoration: InputDecoration(
         hintText: hint,
         prefixIcon: Icon(icon, color: Colors.grey),
