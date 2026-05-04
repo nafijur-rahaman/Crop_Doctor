@@ -18,12 +18,13 @@ from .models import ScanHistory
 from .serializers import ScanHistorySerializer
 
 class IsGuestOrPremium(BasePermission):
-    message = "Guest limit reached or active subscription required."
+    message = "You are not allowed to access this."
 
     def has_permission(self, request, view):
-        if not request.user.is_authenticated:
-            return True
-        return IsPremiumAccess().has_permission(request, view)
+        # Scan is allowed for:
+        # - unauthenticated guests (rate-limited by guest_id in the view)
+        # - authenticated users of any role (guest/paid/expert/superadmin)
+        return True
 
 
 
@@ -61,40 +62,61 @@ class ScanAPIView(APIView):
             )
 
         if prediction.get("status") == "not_a_plant":
+            confidence = float(prediction.get("confidence") or 0)
+            message = prediction.get("message")
+            entropy = prediction.get("entropy")
+
+            # Treat "not a plant" as a successful prediction: store it and
+            # count it against guest limits the same way as other successful scans.
+            ScanHistory.objects.create(
+                user=user,
+                guest_id=guest_id,
+                crop=crop,
+                image=image,
+                disease_name="Not a plant leaf",
+                confidence=confidence,
+                prediction_status="not_a_plant",
+                message=message,
+                entropy=entropy,
+                solution=None,
+            )
+            if user is None and guest_id:
+                consume_guest_scan(guest_id)
+
             return Response(
                 {
                     "prediction": {
                         "crop": crop,
                         "disease": None,
-                        "confidence": prediction.get("confidence", 0),
+                        "confidence": confidence,
                         "top_5": [],
                         "status": "not_a_plant",
                         "message": prediction.get(
                             "message",
                             "Not a plant leaf. Please upload a clear photo of a plant leaf.",
                         ),
-                        "entropy": prediction.get("entropy"),
+                        "entropy": entropy,
                     },
                     "solution": None,
                 },
-                status=400,
+            status=status.HTTP_200_OK,
             )
 
         prediction = select_best_prediction_for_crop(prediction, crop)
 
         disease = prediction.get("disease")
         confidence = float(prediction.get("confidence") or 0)
-        status = prediction.get("status", "ok")
+        prediction_status = prediction.get("status", "ok")
         message = prediction.get("message")
 
-        if status in {"crop_mismatch", "low_confidence"}:
+        if prediction_status in {"crop_mismatch", "low_confidence"}:
             return Response(
                 {
                     "prediction": {
                         "crop": crop,
                         "disease": disease,
                         "confidence": confidence,
-                        "status": status,
+                        "status": prediction_status,
                         "message": message,
                         "entropy": prediction.get("entropy"),
                         "detected": prediction.get("detected"),
@@ -106,7 +128,7 @@ class ScanAPIView(APIView):
 
 
         solution = None
-        if status not in {"crop_mismatch", "low_confidence"} and disease:
+        if prediction_status not in {"crop_mismatch", "low_confidence"} and disease:
             solution = get_solution(disease, crop)
 
  
@@ -117,6 +139,11 @@ class ScanAPIView(APIView):
             image=image,
             disease_name=disease,
             confidence=confidence
+            ,
+            prediction_status=prediction_status,
+            message=message,
+            entropy=prediction.get("entropy"),
+            solution=solution,
         )
         if user is None and guest_id:
             consume_guest_scan(guest_id)
@@ -127,7 +154,7 @@ class ScanAPIView(APIView):
                 "crop": crop,
                 "disease": disease,
                 "confidence": confidence,
-                "status": status,
+                "status": prediction_status,
                 "message": message,
                 "entropy": prediction.get("entropy"),
             },

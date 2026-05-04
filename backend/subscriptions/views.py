@@ -1,6 +1,7 @@
 import uuid
 import requests
 from django.conf import settings
+from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
@@ -11,6 +12,7 @@ from rest_framework import status
 from .models import SubscriptionPlan, UserSubscription
 from .serializers import SubscriptionPlanSerializer, UserSubscriptionUpdateSerializer, UserSubscriptionSerializer
 from users.permissions import IsSuperAdmin
+
 
 
 class AdminPlanManageView(APIView):
@@ -41,7 +43,13 @@ class AdminPlanManageView(APIView):
         plan.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+class GetplanListView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        plans = SubscriptionPlan.objects.all()
+        serializer = SubscriptionPlanSerializer(plans, many=True)
+        return Response(serializer.data)
 
 class AdminListUserSubscriptionsView(APIView):
     permission_classes = [IsAuthenticated, IsSuperAdmin]
@@ -111,10 +119,10 @@ class CreateSubscriptionPaymentAPIView(APIView):
             "tran_id": tran_id,
 
 
-            "success_url": "https://cropdoctor.mrshakil.site/api/subscriptions/payment-success/",
-            "fail_url": "https://cropdoctor.mrshakil.site/api/subscriptions/payment-fail/",
-            "cancel_url": "https://cropdoctor.mrshakil.site/api/subscriptions/payment-cancel/",
-            "ipn_url": "https://cropdoctor.mrshakil.site/api/subscriptions/payment-ipn/",
+            "success_url": f"{settings.BACKEND_HOST}/api/subscriptions/payment-success/",
+            "fail_url": f"{settings.BACKEND_HOST}/api/subscriptions/payment-fail/",
+            "cancel_url": f"{settings.BACKEND_HOST}/api/subscriptions/payment-cancel/",
+            "ipn_url": f"{settings.BACKEND_HOST}/api/subscriptions/payment-ipn/",
 
             "product_name": plan.name,  
             "product_category": "Subscription",
@@ -143,29 +151,61 @@ class CreateSubscriptionPaymentAPIView(APIView):
 class PaymentSuccessAPIView(APIView):
     permission_classes = []
 
+    def _tran_id(self, request):
+        return request.data.get("tran_id") or request.query_params.get("tran_id")
+
+    def get(self, request):
+        return self._handle(request)
+
     def post(self, request):
-        tran_id = request.data.get("tran_id")
+        return self._handle(request)
 
+    def _handle(self, request):
+        tran_id = self._tran_id(request)
         if not tran_id:
-            return Response({"error": "tran_id required"}, status=400)
+            return render(
+                request,
+                "subscriptions/payment_fail.html",
+                {
+                    "title": "Payment status unknown",
+                    "message": "Missing transaction ID. Please return to the app and try again.",
+                    "transaction_id": None,
+                    "app_return_url": getattr(settings, "APP_RETURN_URL", "/"),
+                    "site_url": getattr(settings, "SITE_URL", "/"),
+                },
+                status=400,
+            )
 
-        subscription = UserSubscription.objects.filter(
-            transaction_id=tran_id
-        ).first()
-        
+        subscription = UserSubscription.objects.filter(transaction_id=tran_id).first()
         if not subscription:
-            return Response({"error": "invalid transaction"}, status=404)   
-        
-        if subscription.status == "active":
-            return Response({
-                "message": "Subscription already active",
-                "transaction_id": tran_id
-            })
-        
-        subscription.status = "active"
-        subscription.activate()
-        subscription.save()
-        return Response({"message": "Subscription activated"}, status=status.HTTP_200_OK)
+            return render(
+                request,
+                "subscriptions/payment_fail.html",
+                {
+                    "title": "Payment not found",
+                    "message": "We couldn't find this transaction. Please return to the app and contact support if the issue persists.",
+                    "transaction_id": tran_id,
+                    "app_return_url": getattr(settings, "APP_RETURN_URL", "/"),
+                    "site_url": getattr(settings, "SITE_URL", "/"),
+                },
+                status=404,
+            )
+
+        if subscription.status != "active":
+            subscription.activate()
+
+        return render(
+            request,
+            "subscriptions/payment_success.html",
+            {
+                "title": "Premium activated",
+                "message": "Your payment was successful. Premium features are now available in the app.",
+                "transaction_id": tran_id,
+                "app_return_url": getattr(settings, "APP_RETURN_URL", "/"),
+                "site_url": getattr(settings, "SITE_URL", "/"),
+            },
+            status=200,
+        )
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -201,24 +241,60 @@ class PaymentIPNAPIView(APIView):
 class PaymentFailAPIView(APIView):
     permission_classes = []
 
+    def _tran_id(self, request):
+        return request.data.get("tran_id") or request.query_params.get("tran_id")
+
+    def get(self, request):
+        return self._handle(request)
+
     def post(self, request):
-        tran_id = request.data.get("tran_id")
+        return self._handle(request)
 
-        UserSubscription.objects.filter(
-            transaction_id=tran_id
-        ).update(status="failed")
+    def _handle(self, request):
+        tran_id = self._tran_id(request)
+        if tran_id:
+            UserSubscription.objects.filter(transaction_id=tran_id).update(status="failed")
 
-        return Response({"message": "Payment failed"})
+        return render(
+            request,
+            "subscriptions/payment_fail.html",
+            {
+                "title": "Payment failed",
+                "message": "Your payment was not completed. You can try again from the app.",
+                "transaction_id": tran_id,
+                "app_return_url": getattr(settings, "APP_RETURN_URL", "/"),
+                "site_url": getattr(settings, "SITE_URL", "/"),
+            },
+            status=200,
+        )
     
 
 class PaymentCancelAPIView(APIView):
     permission_classes = []
 
+    def _tran_id(self, request):
+        return request.data.get("tran_id") or request.query_params.get("tran_id")
+
+    def get(self, request):
+        return self._handle(request)
+
     def post(self, request):
-        tran_id = request.data.get("tran_id")
+        return self._handle(request)
 
-        UserSubscription.objects.filter(
-            transaction_id=tran_id
-        ).update(status="cancelled")
+    def _handle(self, request):
+        tran_id = self._tran_id(request)
+        if tran_id:
+            UserSubscription.objects.filter(transaction_id=tran_id).update(status="cancelled")
 
-        return Response({"message": "Payment cancelled"})
+        return render(
+            request,
+            "subscriptions/payment_cancel.html",
+            {
+                "title": "Payment cancelled",
+                "message": "You cancelled the payment. You can restart the upgrade any time from the app.",
+                "transaction_id": tran_id,
+                "app_return_url": getattr(settings, "APP_RETURN_URL", "/"),
+                "site_url": getattr(settings, "SITE_URL", "/"),
+            },
+            status=200,
+        )

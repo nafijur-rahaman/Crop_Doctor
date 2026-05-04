@@ -1,11 +1,12 @@
 from django.urls import path
-from .views import AdminPlanManageView, AdminListUserSubscriptionsView, CreateSubscriptionPaymentAPIView, PaymentSuccessAPIView, PaymentFailAPIView, PaymentCancelAPIView, PaymentIPNAPIView
+from .views import AdminPlanManageView, AdminListUserSubscriptionsView, CreateSubscriptionPaymentAPIView, PaymentSuccessAPIView, PaymentFailAPIView, PaymentCancelAPIView, PaymentIPNAPIView, GetplanListView
 
 urlpatterns = [
     path("admin/get-plans/", AdminPlanManageView.as_view(), name="admin-plan-manage"),
     path("admin/create-plan/", AdminPlanManageView.as_view(), name="admin-plan-manage"),
     path("admin/update-plan/<int:pk>/", AdminPlanManageView.as_view(), name="admin-plan-manage"),
     path("admin/delete-plan/<int:pk>/", AdminPlanManageView.as_view(), name="admin-plan-manage"),
+    path("get-plans/", GetplanListView.as_view(), name="get-plans"),
     
     path("admin/get-subscriptions/", AdminListUserSubscriptionsView.as_view(), name="admin-list-user-subscriptions"),
     path("admin/get-subscription/<int:pk>/", AdminListUserSubscriptionsView.as_view(), name="admin-list-user-subscriptions-detail"),

@@ -19,6 +19,10 @@ class ScanHistory(models.Model):
 
     disease_name = models.CharField(max_length=255)
     confidence = models.FloatField()
+    prediction_status = models.CharField(max_length=32, default="ok")
+    message = models.TextField(blank=True, null=True)
+    entropy = models.FloatField(blank=True, null=True)
+    solution = models.JSONField(blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     

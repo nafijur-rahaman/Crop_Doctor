@@ -1,0 +1,9 @@
+{% extends "subscriptions/_payment_base.html" %}
+{% block content %}
+  <div class="badge cancel">Payment Cancelled</div>
+  <h1>{{ title }}</h1>
+  <p>{{ message }}</p>
+  {% if transaction_id %}
+    <div class="meta">Transaction ID: <code>{{ transaction_id }}</code></div>
+  {% endif %}
+{% endblock %}
