@@ -154,10 +154,12 @@ class _MainLayoutState extends State<MainLayout> {
                     },
                   ),
                   _buildDrawerItem(
-                    Icons.logout,
-                    'Log Out',
-                    () => _handleLogout(context),
-                    color: Colors.redAccent,
+                    AuthService.isAuthenticated ? Icons.logout : Icons.login,
+                    AuthService.isAuthenticated ? 'Logout' : 'Login',
+                    () => AuthService.isAuthenticated 
+                      ? _handleLogout(context) 
+                      : _handleLoginPrompt(context),
+                    color: AuthService.isAuthenticated ? Colors.redAccent : const Color(0xFF00A36C),
                   ),
                 ],
               ),
@@ -257,7 +259,7 @@ class _MainLayoutState extends State<MainLayout> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Log Out'),
+        title: const Text('Logout'),
         content: const Text('Are you sure you want to log out?'),
         actions: [
           TextButton(
@@ -267,7 +269,7 @@ class _MainLayoutState extends State<MainLayout> {
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            child: const Text('Log Out'),
+            child: const Text('Logout'),
           ),
         ],
       ),
@@ -282,6 +284,37 @@ class _MainLayoutState extends State<MainLayout> {
         context,
         MaterialPageRoute(builder: (context) => const WelcomeScreen()),
         (route) => false,
+      );
+    }
+  }
+
+  Future<void> _handleLoginPrompt(BuildContext context) async {
+    Navigator.pop(context); // Close drawer
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Login Required'),
+        content: const Text('You need an account to access this feature. Would you like to login or create an account?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00A36C)),
+            child: const Text('Login / Register'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => WelcomeScreen()),
       );
     }
   }

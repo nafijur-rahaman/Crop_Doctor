@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import '../app_state.dart';
 import '../core/constants/app_colors.dart';
 import '../core/constants/app_styles.dart';
 import '../widgets/farm_card.dart';
@@ -19,6 +19,8 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final profile = AgroAppScope.of(context).profile;
+
     return TweenAnimationBuilder(
       duration: const Duration(milliseconds: 600),
       tween: Tween<double>(begin: 0, end: 1),
@@ -44,10 +46,10 @@ class HomeScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Column(
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Good Morning,',
                       style: TextStyle(
                         color: AppColors.textSecondary,
@@ -55,8 +57,8 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Tanjid Nafis',
-                      style: TextStyle(
+                      profile?.username ?? 'Guest User',
+                      style: const TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -68,12 +70,12 @@ class HomeScreen extends StatelessWidget {
                   onTap: () {
                     Scaffold.of(context).openEndDrawer();
                   },
-                  child: const CircleAvatar(
+                  child: CircleAvatar(
                     radius: 25,
                     backgroundColor: AppColors.primary,
                     child: Text(
-                      'TN',
-                      style: TextStyle(
+                      profile?.initials ?? 'G',
+                      style: const TextStyle(
                         color: AppColors.textLight,
                         fontWeight: FontWeight.bold,
                       ),

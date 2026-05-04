@@ -8,6 +8,7 @@ import '../widgets/custom_notification.dart';
 import 'auth_screen.dart';
 import 'edit_profile_screen.dart';
 import 'subscription_screen.dart';
+import 'welcome_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -42,6 +43,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } catch (_) {
       if (mounted) setState(() => _loadingProfile = false);
+    }
+  }
+
+  Future<void> _showLoginRequiredPrompt(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Login Required'),
+        content: const Text(
+          'You need an account to access this feature. Would you like to login or create an account now?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF00A36C),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Login / Register'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => WelcomeScreen()),
+      );
     }
   }
 
@@ -128,15 +164,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           'Update name & details',
                           const Color(0xFF00A36C),
                           onTap: () {
-                            if (profile != null) {
+                            if (AuthService.isAuthenticated) {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => EditProfileScreen(profile: profile),
+                                  builder: (_) => EditProfileScreen(profile: profile!),
                                 ),
                               );
                             } else {
-                              CustomNotification.show(context, 'Please login first.');
+                              _showLoginRequiredPrompt(context);
                             }
                           },
                         ),
@@ -144,14 +180,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _buildTile(
                           context,
                           Icons.star_outline,
-                          'Subscription & Billing',
-                          'Manage your premium plan',
+                          AuthService.isPremiumUser 
+                            ? 'Manage Subscription' 
+                            : 'Subscription & Billing',
+                          AuthService.isPremiumUser 
+                            ? 'Your plan: ${profile?.displayRole ?? 'Premium'}' 
+                            : 'Upgrade for expert features',
                           Colors.amber[800]!,
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
-                            );
+                            if (AuthService.isAuthenticated) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
+                              );
+                            } else {
+                              _showLoginRequiredPrompt(context);
+                            }
                           },
                         ),
                         const Divider(height: 1, indent: 60),

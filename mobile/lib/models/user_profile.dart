@@ -26,6 +26,7 @@ class UserProfile {
   }
 
   String get displayRole {
+    if (role == 'guest') return 'Guest';
     switch (role) {
       case 'paid':
         return 'Premium User';
