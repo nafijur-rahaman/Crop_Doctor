@@ -31,6 +31,13 @@ class ScanHistory(models.Model):
 
 class DiseaseSolution(models.Model):
     disease_name = models.CharField(max_length=255, unique=True)
+    plant = models.ForeignKey(
+        "Plant",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="disease_solutions",
+    )
 
     organic_solution = models.TextField()
     chemical_solution = models.TextField()
@@ -42,6 +49,42 @@ class DiseaseSolution(models.Model):
     
     def __str__(self):
         return self.disease_name
+
+
+class DiseaseCatalogItem(models.Model):
+    """
+    Catalog of supported model classes (from docs/class_names.json).
+
+    raw_label example: "Corn_(maize)___healthy"
+    """
+
+    class_index = models.PositiveIntegerField(unique=True)
+    raw_label = models.CharField(max_length=255, unique=True)
+    crop_raw = models.CharField(max_length=255, blank=True, default="")
+    disease_raw = models.CharField(max_length=255, blank=True, default="")
+    crop_display = models.CharField(max_length=255, blank=True, default="")
+    disease_display = models.CharField(max_length=255, blank=True, default="")
+    label_display = models.CharField(max_length=512, blank=True, default="")
+    is_healthy = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.label_display or self.raw_label
+
+
+class Plant(models.Model):
+
+    name = models.CharField(max_length=120, unique=True)
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
     
 
 class MissingSolutionLog(models.Model):

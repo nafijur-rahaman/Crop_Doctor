@@ -6,7 +6,7 @@ from django.core.cache import cache
 from django.utils import timezone
 from .ai_service import call_ai
 
-from .models import ScanHistory, DiseaseSolution, MissingSolutionLog
+from .models import ScanHistory, DiseaseSolution, MissingSolutionLog, Plant
 
 HF_URL = "https://nafijur-rahaman-crop-doctor-api.hf.space/predict"
 logger = logging.getLogger(__name__)
@@ -205,6 +205,11 @@ def validate_crop(crop, disease_name):
 
 def get_solution(disease_name, crop):
 
+    def _plant_for_crop_name(name: str):
+        if not name:
+            return None
+        return Plant.objects.filter(name__iexact=str(name).strip()).first()
+
     # -----------------------
     # 1. DB CHECK
     # -----------------------
@@ -213,6 +218,11 @@ def get_solution(disease_name, crop):
     ).first()
 
     if solution:
+        if solution.plant_id is None:
+            plant = _plant_for_crop_name(crop)
+            if plant is not None:
+                solution.plant = plant
+                solution.save(update_fields=["plant"])
         return {
             "organic": solution.organic_solution,
             "chemical": solution.chemical_solution,
@@ -236,8 +246,10 @@ def get_solution(disease_name, crop):
 
         # Treat empty/invalid payload as failure.
         if organic or chemical or tips:
+            plant = _plant_for_crop_name(crop)
             solution = DiseaseSolution.objects.create(
                 disease_name=disease_name,
+                plant=plant,
                 organic_solution=organic,
                 chemical_solution=chemical,
                 prevention_tips=tips,

@@ -14,16 +14,19 @@ from .services import (
 )
 from users.permissions import IsPremiumAccess
 
-from .models import ScanHistory
-from .serializers import ScanHistorySerializer
+from .models import ScanHistory, DiseaseCatalogItem, DiseaseSolution, Plant
+from .serializers import (
+    ScanHistorySerializer,
+    DiseaseCatalogItemSerializer,
+    PlantSerializer,
+    DiseaseSolutionCatalogSerializer,
+)
+from .label_utils import format_label_display, format_crop_and_disease
 
 class IsGuestOrPremium(BasePermission):
     message = "You are not allowed to access this."
 
     def has_permission(self, request, view):
-        # Scan is allowed for:
-        # - unauthenticated guests (rate-limited by guest_id in the view)
-        # - authenticated users of any role (guest/paid/expert/superadmin)
         return True
 
 
@@ -65,9 +68,9 @@ class ScanAPIView(APIView):
             confidence = float(prediction.get("confidence") or 0)
             message = prediction.get("message")
             entropy = prediction.get("entropy")
+            disease_display = "Not a plant leaf"
 
-            # Treat "not a plant" as a successful prediction: store it and
-            # count it against guest limits the same way as other successful scans.
+     
             ScanHistory.objects.create(
                 user=user,
                 guest_id=guest_id,
@@ -88,6 +91,7 @@ class ScanAPIView(APIView):
                     "prediction": {
                         "crop": crop,
                         "disease": None,
+                        "disease_display": disease_display,
                         "confidence": confidence,
                         "top_5": [],
                         "status": "not_a_plant",
@@ -108,18 +112,28 @@ class ScanAPIView(APIView):
         confidence = float(prediction.get("confidence") or 0)
         prediction_status = prediction.get("status", "ok")
         message = prediction.get("message")
+        disease_display = format_label_display(disease) if disease else None
 
         if prediction_status in {"crop_mismatch", "low_confidence"}:
+            detected = prediction.get("detected") or {}
+            detected_label = detected.get("disease")
+            detected_crop, detected_disease = format_crop_and_disease(detected_label)
             return Response(
                 {
                     "prediction": {
                         "crop": crop,
                         "disease": disease,
+                        "disease_display": disease_display,
                         "confidence": confidence,
                         "status": prediction_status,
                         "message": message,
                         "entropy": prediction.get("entropy"),
-                        "detected": prediction.get("detected"),
+                        "detected": {
+                            **(detected if isinstance(detected, dict) else {}),
+                            "crop_display": detected_crop,
+                            "disease_display": format_label_display(detected_label) if detected_label else None,
+                            "disease_name": detected_disease,
+                        } if isinstance(detected, dict) else detected,
                     },
                     "solution": None,
                 },
@@ -153,6 +167,7 @@ class ScanAPIView(APIView):
             "prediction": {
                 "crop": crop,
                 "disease": disease,
+                "disease_display": disease_display,
                 "confidence": confidence,
                 "status": prediction_status,
                 "message": message,
@@ -173,3 +188,41 @@ class ScanHistoryAPIView(APIView):
             "success": True,
             "history": serializer.data
         }, status=status.HTTP_200_OK)
+
+
+class DiseaseCatalogAPIView(APIView):
+
+    permission_classes = [IsPremiumAccess]
+
+    def get(self, request):
+        qs = DiseaseCatalogItem.objects.all().order_by("class_index")
+        items = DiseaseCatalogItemSerializer(qs, many=True).data
+        return Response({"count": len(items), "items": items}, status=status.HTTP_200_OK)
+
+
+class CropCatalogAPIView(APIView):
+
+
+    permission_classes = [IsPremiumAccess]
+
+    def get(self, request):
+        qs = Plant.objects.filter(is_active=True).order_by("name")
+        items = PlantSerializer(qs, many=True).data
+        return Response({"count": len(items), "items": items}, status=status.HTTP_200_OK)
+
+
+class DiseaseSolutionsCatalogAPIView(APIView):
+
+
+    permission_classes = [IsPremiumAccess]
+
+    def get(self, request):
+        qs = DiseaseSolution.objects.all().order_by("disease_name")
+        plant_id = request.query_params.get("plant_id")
+        if plant_id:
+            try:
+                qs = qs.filter(plant_id=int(plant_id))
+            except (TypeError, ValueError):
+                return Response({"error": "plant_id must be an integer"}, status=status.HTTP_400_BAD_REQUEST)
+        items = DiseaseSolutionCatalogSerializer(qs, many=True).data
+        return Response({"count": len(items), "items": items}, status=status.HTTP_200_OK)
