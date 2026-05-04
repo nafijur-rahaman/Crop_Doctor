@@ -1,5 +1,6 @@
 class AppConfig {
-  static const String baseUrl = 'http://127.0.0.1:8000';
+  // static const String baseUrl = 'http://127.0.0.1:8000';
+  static const String baseUrl = 'https://cropdoctor.mrshakil.site';
   static const bool debugMode = true;
   
   // Production vs Dev toggles can go here

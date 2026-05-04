@@ -23,3 +23,7 @@ const String kAnswerBaseUrl = '/api/answer/';
 const String kGetPlansUrl = '/api/get-plans/';
 const String kCreateSubscriptionPaymentUrl =
     '/api/subscriptions/create-subscription-payment/';
+
+// Catalog (premium)
+const String kCatalogPlantsUrl = '/api/catalog/crops/';
+const String kCatalogSolutionsUrl = '/api/catalog/solutions/';

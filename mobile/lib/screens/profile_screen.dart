@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../app_state.dart';
+import '../models/user_stats.dart';
 import '../models/user_profile.dart';
 import '../services/api_client.dart';
 import '../services/auth_service.dart';
+import '../services/stats_service.dart';
 import '../widgets/custom_notification.dart';
 import 'auth_screen.dart';
 import 'edit_profile_screen.dart';
@@ -19,6 +21,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _loadingProfile = true;
+  UserStats? _stats;
 
   @override
   void initState() {
@@ -35,6 +38,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final profile = await AuthService.getProfile();
       if (!mounted) return;
       AgroAppScope.of(context).setProfile(profile);
+      try {
+        _stats = await StatsService.getStats();
+      } catch (_) {}
       setState(() => _loadingProfile = false);
     } on ApiException catch (e) {
       if (mounted) {
@@ -136,7 +142,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Row(
                       children: [
                         _buildStatCard(
-                          '—',
+                          AuthService.isAuthenticated
+                              ? ((_stats?.totalScans ?? 0).toString())
+                              : '—',
                           'Total Scans',
                           const Color(0xFF00A36C),
                         ),

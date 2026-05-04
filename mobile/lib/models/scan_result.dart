@@ -5,6 +5,7 @@ class ScanPrediction {
   const ScanPrediction({
     required this.crop,
     this.disease,
+    this.diseaseDisplay,
     required this.confidence,
     required this.status,
     this.message,
@@ -12,6 +13,7 @@ class ScanPrediction {
 
   final String crop;
   final String? disease;
+  final String? diseaseDisplay;
   final double confidence;
 
   /// 'ok' | 'not_a_plant' | 'crop_mismatch' | 'low_confidence'
@@ -22,6 +24,7 @@ class ScanPrediction {
     return ScanPrediction(
       crop: (json['crop'] as String?) ?? '',
       disease: json['disease'] as String?,
+      diseaseDisplay: json['disease_display'] as String?,
       confidence: ((json['confidence'] as num?) ?? 0).toDouble(),
       status: (json['status'] as String?) ?? 'ok',
       message: json['message'] as String?,
@@ -101,7 +104,8 @@ class ScanResult {
       prediction.disease == null ||
       prediction.disease!.toLowerCase().contains('healthy');
 
-  String get diseaseName => prediction.disease ?? 'Unknown';
+  String get diseaseName =>
+      prediction.diseaseDisplay ?? prediction.disease ?? 'Unknown';
 
   String get confidencePercent =>
       '${(prediction.confidence).toStringAsFixed(1)}%';

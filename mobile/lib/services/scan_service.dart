@@ -51,7 +51,9 @@ class ScanService {
   }
 
   static HistoryItem _historyItemFromApi(Map<String, dynamic> json) {
-    final String diseaseName = (json['disease_name'] as String?) ?? 'Unknown';
+    final String diseaseName = (json['disease_display'] as String?) ??
+        (json['disease_name'] as String?) ??
+        'Unknown';
     final String crop = (json['crop'] as String?) ?? '';
     final double confidence =
         ((json['confidence'] as num?) ?? 0).toDouble();

@@ -108,6 +108,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
   }
 
   Future<void> _handleSubscribe(SubscriptionPlan plan) async {
+    if (AuthService.isPremiumUser) {
+      if (!mounted) return;
+      CustomNotification.show(context, 'You already have an active subscription.');
+      return;
+    }
     if (!AuthService.isAuthenticated) {
       if (!mounted) return;
       CustomNotification.show(context, 'Please login or register to upgrade.');

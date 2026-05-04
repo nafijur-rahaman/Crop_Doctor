@@ -8,6 +8,7 @@ import 'home_screen.dart';
 import 'profile_screen.dart';
 import 'admin_panel_screen.dart';
 import 'expert_panel_screen.dart';
+import 'solutions_library_screen.dart';
 import '../widgets/custom_notification.dart';
 import '../app_state.dart';
 import '../services/auth_service.dart';
@@ -146,6 +147,20 @@ class _MainLayoutState extends State<MainLayout> {
                       CustomNotification.show(context, 'Settings available soon.');
                     },
                   ),
+                  if (AuthService.isPremiumUser)
+                    _buildDrawerItem(
+                      Icons.menu_book_outlined,
+                      'Solutions Library',
+                      () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SolutionsLibraryScreen(),
+                          ),
+                        );
+                      },
+                    ),
                   if (AuthService.role == 'expert' || AuthService.role == 'superadmin')
                     _buildDrawerItem(
                       Icons.medical_information_outlined,
