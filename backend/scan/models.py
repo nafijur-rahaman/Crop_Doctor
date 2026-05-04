@@ -36,6 +36,8 @@ class DiseaseSolution(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     
+    def __str__(self):
+        return self.disease_name
     
 
 class MissingSolutionLog(models.Model):
@@ -53,3 +55,5 @@ class MissingSolutionLog(models.Model):
                 name="uniq_missing_solution_disease_crop",
             )
         ]
+    def __str__(self):
+        return self.disease_name
