@@ -70,6 +70,12 @@ class AuthService {
     await _clearAuth();
   }
 
+  /// Clears local auth/session state without calling backend logout.
+  /// Use this for demo guest exit flows.
+  static Future<void> clearLocalSession() async {
+    await _clearAuth();
+  }
+
   static Future<UserProfile> getProfile() async {
     final data = await ApiClient.get(kProfileUrl);
     return UserProfile.fromJson(data);

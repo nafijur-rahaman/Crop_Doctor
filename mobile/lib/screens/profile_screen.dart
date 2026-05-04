@@ -7,7 +7,6 @@ import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import '../services/stats_service.dart';
 import '../widgets/custom_notification.dart';
-import 'auth_screen.dart';
 import 'edit_profile_screen.dart';
 import 'payment_history_screen.dart';
 import 'subscription_screen.dart';
@@ -89,13 +88,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _handleLogout() async {
+    final isGuestSession = !AuthService.isAuthenticated;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Log Out'),
-        content:
-            const Text('Are you sure you want to log out of your account?'),
+        title: Text(isGuestSession ? 'Exit Guest Mode' : 'Log Out'),
+        content: Text(
+          isGuestSession
+              ? 'Are you sure you want to exit guest mode?'
+              : 'Are you sure you want to log out of your account?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -105,7 +108,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.redAccent),
-            child: const Text('Log Out'),
+            child: Text(isGuestSession ? 'Exit' : 'Log Out'),
           ),
         ],
       ),
@@ -113,13 +116,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (confirmed != true || !mounted) return;
 
-    await AuthService.logout();
+    if (AuthService.isAuthenticated) {
+      await AuthService.logout();
+    } else {
+      await AuthService.clearLocalSession();
+    }
     if (!mounted) return;
     AgroAppScope.of(context).clearProfile();
 
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => const AuthScreen()),
+      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
       (route) => false,
     );
   }
