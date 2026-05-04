@@ -183,7 +183,17 @@ class _ResultScreenState extends State<ResultScreen> {
         ? displayTitle.toLowerCase().contains('healthy')
         : (_result?.isHealthy ?? false);
 
-    // For API results, show status-specific error cards.
+    // For API results, treat "not_a_plant" as a valid outcome (not an error UI).
+    if (!fromHistory &&
+        _result != null &&
+        _result!.prediction.status == 'not_a_plant') {
+      return _NotAPlantView(
+        imageBytes: widget.imageBytes,
+        message: _result!.prediction.message,
+      );
+    }
+
+    // For API results, show status-specific cards for incomplete scans.
     if (!fromHistory && _result != null && !_result!.isOk) {
       return _StatusCard(prediction: _result!.prediction);
     }
@@ -489,6 +499,82 @@ class _StatusCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _NotAPlantView extends StatelessWidget {
+  const _NotAPlantView({required this.imageBytes, this.message});
+
+  final Uint8List? imageBytes;
+  final String? message;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 250,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(25),
+              image: imageBytes != null
+                  ? DecorationImage(
+                      image: MemoryImage(imageBytes!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: imageBytes == null
+                ? const Center(
+                    child: Icon(Icons.image_not_supported_outlined,
+                        size: 60, color: Colors.grey))
+                : null,
+          ),
+          const SizedBox(height: 22),
+          Row(
+            children: const [
+              Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Not a Plant Leaf',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            message ?? 'Please upload a clear photo of a plant leaf.',
+            style: const TextStyle(color: Colors.grey, fontSize: 14),
+          ),
+          const SizedBox(height: 26),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.camera_alt_outlined),
+              label: const Text('Try Again'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF00A36C),
+                minimumSize: const Size(double.infinity, 52),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

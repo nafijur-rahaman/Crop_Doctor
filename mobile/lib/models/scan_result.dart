@@ -90,7 +90,7 @@ class ScanResult {
   String get diseaseName => prediction.disease ?? 'Unknown';
 
   String get confidencePercent =>
-      '${(prediction.confidence * 100).toStringAsFixed(1)}%';
+      '${(prediction.confidence).toStringAsFixed(1)}%';
 
   Color get statusColor {
     if (isHealthy) return Colors.green;

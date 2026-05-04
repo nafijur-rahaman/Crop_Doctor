@@ -6,8 +6,7 @@ import 'api_client.dart';
 import 'auth_service.dart';
 
 class ScanService {
-  /// Submits an image + crop to POST /api/scan/ as multipart/form-data.
-  /// Automatically attaches guest_id if the user is not authenticated.
+
   static Future<ScanResult> submitScan({
     required Uint8List imageBytes,
     required String crop,
@@ -30,6 +29,7 @@ class ScanService {
       fields: fields,
       files: [file],
       withAuth: AuthService.isAuthenticated,
+      allowStatusCodes: {422},
     );
 
     return ScanResult.fromJson(data);

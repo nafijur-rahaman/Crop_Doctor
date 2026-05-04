@@ -77,6 +77,7 @@ class ApiClient {
     required Map<String, String> fields,
     required List<http.MultipartFile> files,
     bool withAuth = true,
+    Set<int> allowStatusCodes = const {},
   }) async {
     final req = http.MultipartRequest('POST', _uri(path));
     
@@ -94,6 +95,17 @@ class ApiClient {
 
     final streamed = await req.send().timeout(const Duration(seconds: 60));
     final res = await http.Response.fromStream(streamed);
+    if (allowStatusCodes.contains(res.statusCode)) {
+      final body = utf8.decode(res.bodyBytes);
+      dynamic decoded;
+      try {
+        decoded = jsonDecode(body);
+      } catch (_) {
+        throw ApiException('Server returned an invalid response.', res.statusCode);
+      }
+      if (decoded is Map<String, dynamic>) return decoded;
+      return {'_data': decoded};
+    }
     return _parse(res);
   }
 
