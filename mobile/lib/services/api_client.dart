@@ -139,7 +139,13 @@ class ApiClient {
       return {'_data': decoded};
     }
 
-    throw ApiException(_extractError(decoded), res.statusCode);
+    throw ApiException(
+      _extractError(decoded),
+      res.statusCode,
+      code: _extractErrorCode(decoded),
+      remainingScans: _extractIntField(decoded, 'remaining_scans'),
+      limitPerWeek: _extractIntField(decoded, 'limit_per_week'),
+    );
   }
 
   static String _extractError(dynamic decoded) {
@@ -160,12 +166,41 @@ class ApiClient {
     }
     return 'An unexpected error occurred. Please try again.';
   }
+
+  static String? _extractErrorCode(dynamic decoded) {
+    if (decoded is Map) {
+      final code = decoded['code'];
+      if (code is String && code.trim().isNotEmpty) {
+        return code.trim();
+      }
+    }
+    return null;
+  }
+
+  static int? _extractIntField(dynamic decoded, String key) {
+    if (decoded is Map) {
+      final value = decoded[key];
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value);
+    }
+    return null;
+  }
 }
 
 class ApiException implements Exception {
-  const ApiException(this.message, this.statusCode);
+  const ApiException(
+    this.message,
+    this.statusCode, {
+    this.code,
+    this.remainingScans,
+    this.limitPerWeek,
+  });
   final String message;
   final int statusCode;
+  final String? code;
+  final int? remainingScans;
+  final int? limitPerWeek;
 
   bool get isUnauthorized => statusCode == 401;
   bool get isForbidden => statusCode == 403;

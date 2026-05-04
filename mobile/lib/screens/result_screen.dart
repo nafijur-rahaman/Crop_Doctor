@@ -1,13 +1,13 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
-import '../app_state.dart';
 import '../models/history_item.dart';
 import '../models/scan_result.dart';
 import '../services/api_client.dart';
+import '../services/auth_service.dart';
 import '../services/scan_service.dart';
-import '../widgets/custom_notification.dart';
 import 'forum_screen.dart';
+import 'subscription_screen.dart';
 
 class ResultScreen extends StatefulWidget {
   const ResultScreen({
@@ -48,6 +48,7 @@ class _ResultScreenState extends State<ResultScreen> {
   ScanResult? _result;
   bool _loading = true;
   String? _errorMessage;
+  bool _hasShownPlansPopup = false;
 
   @override
   void initState() {
@@ -85,6 +86,7 @@ class _ResultScreenState extends State<ResultScreen> {
         _loading = false;
         _errorMessage = e.message;
       });
+      _maybeShowLimitExceededPopup(e);
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -94,22 +96,89 @@ class _ResultScreenState extends State<ResultScreen> {
     }
   }
 
-  void _saveToHistory() {
-    if (_result == null) return;
-    final cropLetter =
-        (widget.crop?.isNotEmpty == true) ? widget.crop![0].toUpperCase() : 'T';
-    AgroAppScope.of(context).saveDiagnosisToHistory(
-      title: _result!.diseaseName,
-      statusColor: _result!.statusColor,
-      icon: cropLetter,
-      cropName: widget.crop ?? '',
-      matchPercentage: _result!.confidencePercent,
-      imageBytes: widget.imageBytes,
-      actions: _result!.actions,
+  Future<void> _maybeShowLimitExceededPopup(ApiException error) async {
+    if (!mounted || _hasShownPlansPopup) return;
+    if (!_isGuestLikeUser) return;
+    if (!_isScanLimitExceededError(error)) return;
+
+    _hasShownPlansPopup = true;
+    final limitPerWeek = error.limitPerWeek;
+    final remainingScans = error.remainingScans;
+    final scansUsed =
+        (limitPerWeek != null && remainingScans != null)
+            ? (limitPerWeek - remainingScans)
+            : null;
+    final quotaMessage = scansUsed != null
+        ? 'You used $scansUsed/$limitPerWeek free scans this week. Upgrade to continue scanning.'
+        : 'You have reached your free scan limit. Upgrade to keep scanning without interruption:';
+
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Free Scan Limit Reached'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                quotaMessage,
+              ),
+              const SizedBox(height: 12),
+              const _PlanBenefit(text: 'Unlimited crop scans'),
+              const _PlanBenefit(text: 'Complete disease treatment recommendations'),
+              const _PlanBenefit(text: 'Premium solution library access'),
+              const _PlanBenefit(text: 'Priority expert assistance'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Maybe later'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF00A36C),
+              ),
+              child: const Text('View Plans'),
+            ),
+          ],
+        );
+      },
     );
-    CustomNotification.show(context, 'Saved to history.');
-    Navigator.pop(context);
   }
+
+  bool _isScanLimitExceededError(ApiException error) {
+    if (error.code == 'SCAN_LIMIT_EXCEEDED') return true;
+
+    // Some backends return generic 403 for logged-in users with role=guest.
+    if (_isGuestLikeUser && error.statusCode == 403) return true;
+
+    if (error.statusCode == 429) return true;
+    if (error.statusCode == 403) {
+      final msg = error.message.toLowerCase();
+      if (msg.contains('limit') || msg.contains('quota')) return true;
+      if (msg.contains('free') && msg.contains('scan')) return true;
+      if (msg.contains('upgrade') || msg.contains('premium')) return true;
+    }
+
+    final message = error.message.toLowerCase();
+    final hasLimitWord = message.contains('limit') ||
+        message.contains('quota') ||
+        message.contains('too many');
+    final isScanContext =
+        message.contains('scan') || message.contains('request');
+    return hasLimitWord && isScanContext;
+  }
+
+  bool get _isGuestLikeUser => !AuthService.isPremiumUser;
 
   @override
   Widget build(BuildContext context) {
@@ -144,30 +213,6 @@ class _ResultScreenState extends State<ResultScreen> {
                   },
                 )
               : _buildResult(),
-      bottomNavigationBar: (!widget.isHistoryView && !_loading && _errorMessage == null &&
-              (widget._hasHistoryData || _result?.isOk == true))
-          ? Padding(
-              padding: const EdgeInsets.all(20),
-              child: ElevatedButton(
-                onPressed: _saveToHistory,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00A36C),
-                  minimumSize: const Size(double.infinity, 55),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
-                child: const Text(
-                  'Save to History',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            )
-          : null,
     );
   }
 
@@ -390,6 +435,32 @@ class _ResultScreenState extends State<ResultScreen> {
             ),
           ),
           const SizedBox(height: 30),
+        ],
+      ),
+    );
+  }
+}
+
+class _PlanBenefit extends StatelessWidget {
+  const _PlanBenefit({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.check_circle_outline, size: 18, color: Color(0xFF00A36C)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 13),
+            ),
+          ),
         ],
       ),
     );
