@@ -48,7 +48,8 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 
-BACKEND_HOST = "http://127.0.0.1:8000"
+
+BACKEND_HOST = env("BACKEND_HOST", default="https://cropdoctor.mrshakil.site")
 
 # Application definition
 
