@@ -10,7 +10,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
 from .models import SubscriptionPlan, UserSubscription
-from .serializers import SubscriptionPlanSerializer, UserSubscriptionUpdateSerializer, UserSubscriptionSerializer
+from .serializers import (
+    SubscriptionPlanSerializer,
+    UserSubscriptionUpdateSerializer,
+    UserSubscriptionSerializer,
+    UserSubscriptionMeSerializer,
+)
 from users.permissions import IsSuperAdmin
 
 
@@ -298,3 +303,22 @@ class PaymentCancelAPIView(APIView):
             },
             status=200,
         )
+
+
+class MySubscriptionsAPIView(APIView):
+    """
+    Authenticated user's payment/subscription history.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None):
+        qs = UserSubscription.objects.filter(user=request.user).order_by("-created_at")
+        if pk is not None:
+            sub = qs.filter(id=pk).first()
+            if not sub:
+                return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"success": True, "subscription": UserSubscriptionMeSerializer(sub).data})
+
+        data = UserSubscriptionMeSerializer(qs, many=True).data
+        return Response({"success": True, "subscriptions": data})

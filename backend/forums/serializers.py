@@ -5,6 +5,8 @@ from .models import Question, Answer, AnswerLike
 
 class AnswerSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField(read_only=True)
+    user_id = serializers.IntegerField(source="user.id", read_only=True)
+    user_role = serializers.CharField(source="user.role", read_only=True)
     question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
 
     class Meta:
@@ -13,6 +15,8 @@ class AnswerSerializer(serializers.ModelSerializer):
             "id",
             "question",
             "user",
+            "user_id",
+            "user_role",
             "text",
             "is_expert",
             "is_ai",
@@ -39,6 +43,8 @@ class AnswerSerializer(serializers.ModelSerializer):
 
 class QuestionSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
+    user_id = serializers.IntegerField(source="user.id", read_only=True)
+    user_role = serializers.CharField(source="user.role", read_only=True)
     answers = AnswerSerializer(many=True, read_only=True)
 
     class Meta:
@@ -46,6 +52,8 @@ class QuestionSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "user",
+            "user_id",
+            "user_role",
             "title",
             "description",
             "crop",

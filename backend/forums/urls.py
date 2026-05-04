@@ -1,8 +1,9 @@
 from django.urls import path
-from .views import QuestionAPIView, AnswerAPIView, ToggleLikeAPIView
+from .views import QuestionAPIView, AnswerAPIView, ToggleLikeAPIView, AllQuestionsAPIView
 
 urlpatterns = [
     path("questions/get-all-questions/", QuestionAPIView.as_view(), name="get-all-questions"),
+    path("questions/all/", AllQuestionsAPIView.as_view(), name="get-all-questions-global"),
     path("question/<int:pk>/", QuestionAPIView.as_view(), name="get-question"),
     path("question/create-question/", QuestionAPIView.as_view(), name="create-question"),
     path("question/<int:pk>/update-question/", QuestionAPIView.as_view(), name="update-question"),

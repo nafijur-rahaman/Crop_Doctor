@@ -1,5 +1,15 @@
 from django.urls import path
-from .views import AdminPlanManageView, AdminListUserSubscriptionsView, CreateSubscriptionPaymentAPIView, PaymentSuccessAPIView, PaymentFailAPIView, PaymentCancelAPIView, PaymentIPNAPIView, GetplanListView
+from .views import (
+    AdminPlanManageView,
+    AdminListUserSubscriptionsView,
+    CreateSubscriptionPaymentAPIView,
+    PaymentSuccessAPIView,
+    PaymentFailAPIView,
+    PaymentCancelAPIView,
+    PaymentIPNAPIView,
+    GetplanListView,
+    MySubscriptionsAPIView,
+)
 
 urlpatterns = [
     path("admin/get-plans/", AdminPlanManageView.as_view(), name="admin-plan-manage"),
@@ -18,4 +28,7 @@ urlpatterns = [
     path("subscriptions/payment-fail/", PaymentFailAPIView.as_view(), name="payment-fail"),
     path("subscriptions/payment-cancel/", PaymentCancelAPIView.as_view(), name="payment-cancel"),
     path("subscriptions/payment-ipn/", PaymentIPNAPIView.as_view(), name="payment-ipn"),
+
+    path("subscriptions/my/", MySubscriptionsAPIView.as_view(), name="my-subscriptions"),
+    path("subscriptions/my/<int:pk>/", MySubscriptionsAPIView.as_view(), name="my-subscriptions-detail"),
 ]

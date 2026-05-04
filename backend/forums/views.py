@@ -149,3 +149,19 @@ class ToggleLikeAPIView(APIView):
         answer.save()
 
         return Response({"message": "liked"})
+
+
+class AllQuestionsAPIView(APIView):
+    """
+    Premium-only global forum feed (all questions).
+    """
+
+    permission_classes = [IsAuthenticated, IsPremiumAccess]
+
+    def get(self, request):
+        questions = Question.objects.all().order_by("-created_at")
+        serializer = QuestionSerializer(questions, many=True)
+        return Response(
+            {"success": True, "questions": serializer.data},
+            status=status.HTTP_200_OK,
+        )

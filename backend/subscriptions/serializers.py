@@ -15,6 +15,24 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
         model = UserSubscription
         fields = "__all__"
 
+
+class UserSubscriptionMeSerializer(serializers.ModelSerializer):
+    plan = SubscriptionPlanSerializer(read_only=True)
+
+    class Meta:
+        model = UserSubscription
+        fields = [
+            "id",
+            "transaction_id",
+            "status",
+            "start_date",
+            "end_date",
+            "is_active",
+            "created_at",
+            "plan",
+        ]
+        read_only_fields = fields
+
 class UserSubscriptionUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserSubscription
