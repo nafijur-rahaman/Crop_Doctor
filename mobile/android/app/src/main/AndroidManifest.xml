@@ -1,5 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Internet permission -->
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
@@ -19,9 +20,8 @@
             android:windowSoftInputMode="adjustResize">
 
             <meta-data
-              android:name="io.flutter.embedding.android.NormalTheme"
-              android:resource="@style/NormalTheme"
-              />
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme" />
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -36,11 +36,27 @@
 
     </application>
 
+    <!-- 🔥 FIX: required for release browser opening (Android 11+) -->
     <queries>
+
+        <!-- allow opening HTTPS links (Chrome / browser redirect) -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+
+        <!-- allow HTTP fallback -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="http" />
+        </intent>
+
+        <!-- keep existing text sharing support -->
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+
     </queries>
 
 </manifest>
