@@ -125,31 +125,57 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
           const SizedBox(height: 10),
           Expanded(
-            child: _loading
-                ? const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF00A36C)),
-                  )
-                : _error != null
-                    ? _HistoryErrorView(
-                        message: _error!,
-                        onRetry: () {
-                          _loadHistory();
-                        },
-                      )
-                    : (!AuthService.isAuthenticated && localLogs.isEmpty)
-                        ? const _HistoryHintView(
-                            message:
-                                'Login to see your scan history. Your recent results can be saved locally from the result screen.',
-                          )
-                        : filteredLogs.isEmpty
-                            ? const Center(
-                                child: Text(
-                                  'No history items match your search.',
-                                  style: TextStyle(color: Colors.grey),
+            child: RefreshIndicator(
+              onRefresh: _loadHistory,
+              color: const Color(0xFF00A36C),
+              child: _loading
+                  ? const SingleChildScrollView(
+                      physics: AlwaysScrollableScrollPhysics(),
+                      child: SizedBox(
+                        height: 300,
+                        child: Center(child: CircularProgressIndicator(color: Color(0xFF00A36C))),
+                      ),
+                    )
+                  : _error != null
+                      ? SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: SizedBox(
+                            height: 300,
+                            child: _HistoryErrorView(
+                              message: _error!,
+                              onRetry: () {
+                                _loadHistory();
+                              },
+                            ),
+                          ),
+                        )
+                      : (!AuthService.isAuthenticated && localLogs.isEmpty)
+                          ? const SingleChildScrollView(
+                              physics: AlwaysScrollableScrollPhysics(),
+                              child: SizedBox(
+                                height: 300,
+                                child: _HistoryHintView(
+                                  message:
+                                      'Login to see your scan history. Your recent results can be saved locally from the result screen.',
                                 ),
-                              )
-                            : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                              ),
+                            )
+                          : filteredLogs.isEmpty
+                              ? const SingleChildScrollView(
+                                  physics: AlwaysScrollableScrollPhysics(),
+                                  child: SizedBox(
+                                    height: 300,
+                                    child: Center(
+                                      child: Text(
+                                        'No history items match your search.',
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : ListView.builder(
+                                  physics: const AlwaysScrollableScrollPhysics(),
+                                  padding: const EdgeInsets.symmetric(horizontal: 20),
                     itemCount: filteredLogs.length,
                     itemBuilder: (context, index) {
                       final HistoryItem log = filteredLogs[index];
@@ -279,6 +305,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       );
                     },
                   ),
+            ),
           ),
         ],
       ),

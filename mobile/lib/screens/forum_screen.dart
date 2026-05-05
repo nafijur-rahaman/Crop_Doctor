@@ -468,50 +468,74 @@ class _ForumScreenState extends State<ForumScreen> {
       );
     }
     if (_loadError != null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
-            const SizedBox(height: 12),
-            Text(_loadError!,
-                style: const TextStyle(color: Colors.grey, fontSize: 14)),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: _loadQuestions,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00A36C)),
+      return RefreshIndicator(
+        onRefresh: _loadQuestions,
+        color: const Color(0xFF00A36C),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: 400,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+                  const SizedBox(height: 12),
+                  Text(_loadError!,
+                      style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: _loadQuestions,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF00A36C)),
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       );
     }
     if (posts.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.forum_outlined, size: 56, color: Colors.grey),
-            SizedBox(height: 12),
-            Text('No questions yet.',
-                style: TextStyle(color: Colors.grey, fontSize: 15)),
-            SizedBox(height: 6),
-            Text('Be the first to ask!',
-                style: TextStyle(color: Colors.grey, fontSize: 13)),
-          ],
+      return RefreshIndicator(
+        onRefresh: _loadQuestions,
+        color: const Color(0xFF00A36C),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: 400,
+            child: const Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.forum_outlined, size: 56, color: Colors.grey),
+                  SizedBox(height: 12),
+                  Text('No questions yet.',
+                      style: TextStyle(color: Colors.grey, fontSize: 15)),
+                  SizedBox(height: 6),
+                  Text('Be the first to ask!',
+                      style: TextStyle(color: Colors.grey, fontSize: 13)),
+                ],
+              ),
+            ),
+          ),
         ),
       );
     }
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      physics: const BouncingScrollPhysics(),
-      itemCount: posts.length + 1,
-      itemBuilder: (_, i) {
-        if (i == posts.length) return const SizedBox(height: 80);
-        return _buildForumCard(posts[i]);
-      },
+    return RefreshIndicator(
+      onRefresh: _loadQuestions,
+      color: const Color(0xFF00A36C),
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: posts.length + 1,
+        itemBuilder: (_, i) {
+          if (i == posts.length) return const SizedBox(height: 80);
+          return _buildForumCard(posts[i]);
+        },
+      ),
     );
   }
 

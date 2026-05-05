@@ -13,6 +13,7 @@ import '../widgets/custom_notification.dart';
 import '../app_state.dart';
 import '../services/auth_service.dart';
 import 'subscription_screen.dart';
+import 'payment_history_screen.dart';
 import 'welcome_screen.dart';
 
 class MainLayout extends StatefulWidget {
@@ -137,6 +138,26 @@ class _MainLayoutState extends State<MainLayout> {
                         context,
                         MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
                       );
+                    },
+                  ),
+                  if (AuthService.isAuthenticated)
+                    _buildDrawerItem(
+                      Icons.receipt_long_outlined,
+                      'Payment History',
+                      () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const PaymentHistoryScreen()),
+                        );
+                      },
+                    ),
+                  _buildDrawerItem(
+                    Icons.language_outlined,
+                    'App Language',
+                    () {
+                      Navigator.pop(context);
+                      CustomNotification.show(context, 'App Language settings coming soon.');
                     },
                   ),
                   _buildDrawerItem(

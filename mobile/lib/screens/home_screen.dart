@@ -154,14 +154,17 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
       },
-      child: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppStyles.paddingScreen,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      child: RefreshIndicator(
+        onRefresh: _loadData,
+        color: const Color(0xFF00A36C),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppStyles.paddingScreen,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             const SizedBox(height: 60),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -363,6 +366,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 100),
           ],
         ),
+      ),
       ),
     );
   }

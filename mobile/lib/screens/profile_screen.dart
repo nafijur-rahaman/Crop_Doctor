@@ -162,116 +162,67 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ? const Center(
               child: CircularProgressIndicator(color: Color(0xFF00A36C)),
             )
-          : SingleChildScrollView(
-              child: Column(
-                children: [
-                  _buildHeader(profile),
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Row(
-                      children: [
-                        _buildStatCard(
-                          AuthService.isAuthenticated
-                              ? ((_stats?.totalScans ?? 0).toString())
-                              : '—',
-                          'Total Scans',
-                          const Color(0xFF00A36C),
-                        ),
-                        const SizedBox(width: 15),
-                        _buildStatCard(
-                          profile?.displayRole ?? '—',
-                          _daysLeft == null ? 'Account Type' : (_daysLeft! < 0 ? 'Expired' : '$_daysLeft Days Left'),
-                          Colors.blueGrey,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildTile(
-                          context,
-                          Icons.person_outline,
-                          'Edit Profile',
-                          'Update name & details',
-                          const Color(0xFF00A36C),
-                          onTap: () {
-                            if (AuthService.isAuthenticated) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => EditProfileScreen(profile: profile!),
-                                ),
-                              );
-                            } else {
-                              _showLoginRequiredPrompt(context);
-                            }
-                          },
-                        ),
-                        const Divider(height: 1, indent: 60),
-                        _buildTile(
-                          context,
-                          Icons.star_outline,
-                          AuthService.isPremiumUser 
-                            ? 'Manage Subscription' 
-                            : 'Subscription & Billing',
-                          AuthService.isPremiumUser 
-                            ? 'Your plan: ${profile?.displayRole ?? 'Premium'}' 
-                            : 'Upgrade for expert features',
-                          Colors.amber[800]!,
-                          onTap: () {
-                            if (AuthService.isAuthenticated) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
-                              );
-                            } else {
-                              _showLoginRequiredPrompt(context);
-                            }
-                          },
-                        ),
-                        if (AuthService.isAuthenticated) ...[
-                          const Divider(height: 1, indent: 60),
-                          _buildTile(
-                            context,
-                            Icons.receipt_long_outlined,
-                            'Payment History',
-                            'View your payments and subscription details',
-                            Colors.teal,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const PaymentHistoryScreen(),
-                                ),
-                              );
-                            },
+          : RefreshIndicator(
+              onRefresh: _loadProfile,
+              color: const Color(0xFF00A36C),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  children: [
+                    _buildHeader(profile),
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Row(
+                        children: [
+                          _buildStatCard(
+                            AuthService.isAuthenticated
+                                ? ((_stats?.totalScans ?? 0).toString())
+                                : '—',
+                            'Total Scans',
+                            const Color(0xFF00A36C),
+                          ),
+                          const SizedBox(width: 15),
+                          _buildStatCard(
+                            profile?.displayRole ?? '—',
+                            _daysLeft == null ? 'Account Type' : (_daysLeft! < 0 ? 'Expired' : '$_daysLeft Days Left'),
+                            Colors.blueGrey,
                           ),
                         ],
-                        const Divider(height: 1, indent: 60),
-                        _buildTile(
-                          context,
-                          Icons.language_outlined,
-                          'App Language',
-                          'English',
-                          Colors.blue,
-                        ),
-                        const Divider(height: 1, indent: 60),
-                        _buildTile(
-                          context,
-                          Icons.settings_outlined,
-                          'Settings',
-                          'Notifications & Privacy',
-                          Colors.grey,
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.02),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: _buildTile(
+                        context,
+                        Icons.person_outline,
+                        'Edit Profile',
+                        'Update name & details',
+                        const Color(0xFF00A36C),
+                        onTap: () {
+                          if (AuthService.isAuthenticated) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => EditProfileScreen(profile: profile!),
+                              ),
+                            );
+                          } else {
+                            _showLoginRequiredPrompt(context);
+                          }
+                        },
+                      ),
+                    ),
                   const SizedBox(height: 30),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -304,6 +255,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
+          ),
     );
   }
 
