@@ -12,6 +12,7 @@ import '../services/catalog_service.dart';
 import '../services/forum_service.dart';
 import '../services/auth_service.dart';
 import 'question_detail_screen.dart';
+import 'subscription_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -28,6 +29,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  static bool _hasShownAd = false;
+  
   bool _loadingPlants = true;
   List<Plant> _plants = [];
   
@@ -39,6 +42,55 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndShowAd();
+    });
+  }
+
+  void _checkAndShowAd() {
+    if (!_hasShownAd && !AuthService.isPremiumUser) {
+      _hasShownAd = true;
+      _showPremiumAd();
+    }
+  }
+
+  void _showPremiumAd() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.star, color: Colors.amber),
+            SizedBox(width: 10),
+            Text('Upgrade to Premium'),
+          ],
+        ),
+        content: const Text(
+          'Unlock the Expert Forum and get direct help from certified agronomists! '
+          'Upgrade your account today to maximize your crop yields.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Maybe Later', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF00A36C),
+            ),
+            child: const Text('View Plans', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _loadData() async {

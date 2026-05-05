@@ -11,6 +11,8 @@ import 'edit_profile_screen.dart';
 import 'payment_history_screen.dart';
 import 'subscription_screen.dart';
 import 'welcome_screen.dart';
+import '../services/payment_history_service.dart';
+import '../models/user_subscription_item.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -22,6 +24,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _loadingProfile = true;
   UserStats? _stats;
+  int? _daysLeft;
 
   @override
   void initState() {
@@ -41,6 +44,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
       try {
         _stats = await StatsService.getStats();
       } catch (_) {}
+      
+      if (AuthService.isPremiumUser) {
+        try {
+          final subs = await PaymentHistoryService.listMine();
+          UserSubscriptionItem? activeSub;
+          for (final s in subs) {
+            if (s.isActive && s.endDate != null) {
+              activeSub = s;
+              break;
+            }
+          }
+          if (activeSub != null) {
+            final end = DateTime.parse(activeSub.endDate!);
+            _daysLeft = end.difference(DateTime.now()).inDays;
+          }
+        } catch (_) {}
+      }
+      
       setState(() => _loadingProfile = false);
     } on ApiException catch (e) {
       if (mounted) {
@@ -159,7 +180,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(width: 15),
                         _buildStatCard(
                           profile?.displayRole ?? '—',
-                          'Account Type',
+                          _daysLeft == null ? 'Account Type' : (_daysLeft! < 0 ? 'Expired' : '$_daysLeft Days Left'),
                           Colors.blueGrey,
                         ),
                       ],
