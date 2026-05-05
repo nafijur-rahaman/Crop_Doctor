@@ -48,26 +48,27 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 
-
 BACKEND_HOST = env("BACKEND_HOST", default="https://cropdoctor.mrshakil.site")
 
 # Application definition
 
 INSTALLED_APPS = [
+    "jazzmin",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
-    #third party apps
+
+    # third party apps
     "rest_framework",
     "rest_framework.authtoken",
     "corsheaders",
+    "django_filters",
 
 
-    'users', 	
+    'users',
     'scan',
     'subscriptions',
     'forums',
@@ -111,7 +112,6 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.TokenAuthentication",
     ],
 }
-
 
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -181,3 +181,73 @@ SSLCOMMERZ_STORE_ID = env("SSLCOMMERZ_STORE_ID", default="")
 SSLCOMMERZ_STORE_PASSWORD = env("SSLCOMMERZ_STORE_PASSWORD", default="")
 SSLCOMMERZ_BASE_URL = env("SSLCOMMERZ_BASE_URL", default="")
 
+# Jazzmin Admin Configuration
+JAZZMIN_SETTINGS = {
+    "site_title": "Crop Doctor Admin",
+    "site_header": "Crop Doctor Management",
+    "site_brand": "CropDoctor",
+    "login_logo": None,
+    "login_logo_dark": None,
+    "site_logo_classes": "img-circle",
+    "welcome_sign": "Welcome to Crop Doctor Admin Panel",
+    "copyright": "Crop Doctor © 2026. All rights reserved.",
+    "search_model": ["users.User", "scan.ScanHistory", "subscriptions.UserSubscription"],
+    "user_avatar": None,
+    "topmenu_links": [
+        {"name": "Home", "url": "admin:index",
+            "permissions": ["auth.view_user"]},
+        {"name": "API Docs", "url": "/docs/", "new_window": True},
+    ],
+    "usermenu_links": [
+        {"model": "auth.user"},
+    ],
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "hide_apps": [],
+    "hide_models": [],
+    "order_with_respect_to": [
+        "auth.user",
+        "users.user",
+        "scan.plant",
+        "scan.scanhistory",
+        "scan.diseasecatalogitem",
+        "scan.diseasesolution",
+        "subscriptions.subscriptionplan",
+        "subscriptions.usersubscription",
+        "forums.question",
+        "forums.answer",
+    ],
+    "custom_css": None,
+    "custom_js": None,
+    "show_ui_builder": False,
+    "changeform_format": "horizontal_tabs",
+    "changeform_format_overrides": {
+        "auth.user": "collapsible",
+        "auth.group": "tab",
+    },
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "users.user": "fas fa-user-circle",
+        "users": "fas fa-users-cog",
+        "scan.plant": "fas fa-leaf",
+        "scan.scanhistory": "fas fa-microscope",
+        "scan.diseasecatalogitem": "fas fa-list",
+        "scan.diseasesolution": "fas fa-prescription-bottle",
+        "scan": "fas fa-stethoscope",
+        "subscriptions.subscriptionplan": "fas fa-credit-card",
+        "subscriptions.usersubscription": "fas fa-user-check",
+        "subscriptions": "fas fa-layer-group",
+        "forums.question": "fas fa-question-circle",
+        "forums.answer": "fas fa-comments",
+        "forums": "fas fa-comments",
+    },
+    "default_icon_parents": "fas fa-chevron-right",
+    "default_icon_children": "fas fa-arrow-right",
+    "related_modal_active": True,
+    "custom_url_icon_map": {},
+    "show_form_bottom_submit_button": True,
+    "language_chooser": False,
+    "version": "3.0.0",
+}

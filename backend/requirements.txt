@@ -8,6 +8,8 @@ cryptography==47.0.0
 Django==6.0.4
 django-cors-headers==4.9.0
 django-environ==0.13.0
+django-filter==25.2
+django-jazzmin==3.0.4
 djangorestframework==3.17.1
 google-ai-generativelanguage==0.6.15
 google-api-core==2.30.3
